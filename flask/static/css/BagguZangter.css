@@ -1,0 +1,235 @@
+@charset "utf-8";
+@import url(reset.css);
+
+    html {width: 450px; margin: 0 auto;}
+    #wrap{ width: 100%; height: 150vh; overflow: hidden; margin: 0 auto;}
+    .container {width: 450px; height: 100vh; margin: 0 auto;}
+    .contents {width: 450px;}
+    .inner {width: 450px; height: 100vh;margin: 0 auto; }
+    /* intro*/
+    .intro {width: 450px; height: 170vh; position: relative; background: #F2A03D; z-index: 999; }
+    .intro > h2 {position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #010326; font-size: 26px; opacity: 0;}
+    .intro > img {width: 40%; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -40%); opacity: 0;}
+
+    /* btnBar */
+    .btnBar {width: 450px; height: 90px; position: relative;}
+    .btn-menu {
+        position: absolute;
+        top: 0; right: 0;
+        display: inline-block;
+        height: 10px;
+        margin: 30px 10px;
+        transition: all 0.3s;
+        z-index: 99;
+        
+    }
+    .btn-menu .item {
+        display: block;
+        background: #222;
+        width: 20px; height: 0.5px;
+        margin: 0 0 5px;
+        transition: all 0.2s;
+    }
+    .btn-menu.on .item:nth-child(1) {
+        transform: rotate(42deg);
+        transform-origin: 2px;
+    }
+    .btn-menu.on .item:nth-child(3) {
+        transform: rotate(-42deg);
+        transform-origin: 2px;
+    }
+    .btn-menu.on .item:nth-child(2) {opacity: 0;}
+
+    /* menu-List */
+    .menu-list { 
+        width: 450px; height: 1000px;
+        position: fixed;
+        top: 0;
+        background: #fffbef;
+        display: none;
+        z-index: 98;
+    }
+    .menu-list .top-menu { 
+        padding: 45px 0 30px 20px;
+    }
+    .menu-list .top-menu li { 
+        float: left;
+        width: 55px;
+        text-align: center;
+    }
+    .menu-list .top-menu a{
+        display: block;
+        font-size: 15px;
+    }
+    .menu-list .categorie {
+        font-size: 15px;
+    }
+    .menu-list .categorie > li {
+        padding: 25px 0 10px 27px;
+    } 
+    .menu-list .categorie .sub-menu li {
+        padding: 8px 0 0 30px;
+    }
+    .menu-list .categorie .sub-menu li a {
+        display: block;
+    }
+    .menu-list select { 
+        margin: 40px 0 0 9px;
+        border: none;
+        background: #fffbef;
+        font-size: 9px;
+        color: #7e7e7e94;
+    }
+    .menu-list select option {color: #000;}
+
+    /* main */
+    .contents {width: 450px; height:100vh; position: absolute; top: 0; }
+    .contents .title  {text-align: left;width: 50%;  height: 50px; margin: 20px 0; font-size: 23px;}
+    .contents .title a {display: block;}
+    .contents video {width: 100%;}
+    .contents .box-Area { width: 100%; height: 100vh; margin: 30px 0;}
+    .contents .box {height: 85px; padding: 20px 10px 30px; margin: 20px; }
+    .box {display: flex;align-items: center;margin-bottom: 20px;padding: 10px;border-bottom: 1px solid #ccc;}
+    .box img {width: 150px;height: 150px; margin-right: 20px;object-fit: cover; border: 1px solid #ccc; border-radius: 10px;}
+    .box .info { display: flex; flex-direction: column;}
+    .box .info h3 { margin: 0 0 10px 0;font-size: 1.2em; font-weight: 700;}
+    .box .info p {margin: 0 0 10px 0; font-size: 1em; color: #666; font-weight: 700; }
+    .box .info small {color: #666;} 
+
+
+    /* login */
+    .login {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -30%);
+        z-index: 13;
+        margin-top: 70px;
+    }
+    .login input {
+        width: 320px;
+        margin-bottom: 10px;
+        padding: 10px;
+        font-size: 14px;
+        border: none;
+        border-bottom: 1px solid #ccc;
+        background: none;
+    }
+    .login label {cursor: pointer;}
+    .login button{
+        cursor: pointer;
+        width: 100%;
+        height: 40px;
+        border: none;
+        background: none;
+    }
+    .login .btn.btn-danger {width: 100%; background: #111; color:#fff; margin-bottom: 5px;}
+    .login .btn.btn-primary {border: 1px solid #ccc;}
+
+    /* ------------------------ fixedBanner */
+
+    .fixed-banner {
+        width: 450px;
+        position: fixed;
+        bottom: 0; 
+        cursor: pointer;
+        z-index: 51;
+    }
+    .fixed-banner > img {width: 10%; margin-left: 85%;}
+    .fixed-banner > .fixfixed-chat {width: 100%;height: 80px; }
+
+    /* footer */
+    footer {width: 100%; background: #fff; margin-top: 80px;}
+    footer > div {
+        font-size: 13px; 
+        margin-bottom: 20px;
+        line-height: 1.7;
+        padding: 20px;
+    }
+    footer > div:first-child{padding-top: 30px;}
+    footer .f-bold {color: rgba(0, 0, 0, 1);}
+
+    .copy {
+        display:block ;
+        font-weight: 600;
+        font-size: 12px; 
+        padding: 20px; 
+        margin-bottom: 30px;
+    }
+
+    /* 회원가입창 */
+.mb-5 h1{text-align: center; font-size: 20px; font-weight: bold; margin: 30px 20px;}
+.ac {margin-bottom: 30px;  font-size: 14px;}
+.ac .ac-input {
+    padding: 10px; 
+    width: 380px;
+    background: none;
+    border: 1px solid #ccc;
+    outline: none;
+    
+}
+.ac .ac-phone {
+    padding: 10px; 
+    background: none;
+    border: 1px solid #ccc;
+    display: inline-block;
+    width: 105px;
+}
+.ac .h {display: inline;}
+select {
+    display: inline-block; 
+    width: 109px; 
+    height: 37px; 
+    background: none;
+    
+}
+.mb-3 {margin-bottom: 30px; margin-top: 30px;}
+
+section > option {background: none;}
+.phone-n .ac-phone {background: none; border: 1px solid #ccc;}
+.phone-n {border: 1px solid #ccc;}
+
+/* 이용약관 */
+.check {display: flex;}
+input[type=checkbox] {
+    display:block;
+}
+input[type="checkbox"]+label {
+    display: block;
+    padding-left: 7px;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    
+    
+}
+input[type='checkbox']:checked+label {
+    background:url('img/checkbox2.png') no-repeat 0 1px / contain;
+    outline: none;
+}
+label {margin-left: 3px;}
+
+.ac-but {
+    width: 400px; 
+    margin-top: 30px;
+    padding: 10px 20px; 
+    background: #111; 
+    color: #fff; 
+    cursor: pointer;
+}
+.form-control{
+    padding: 10px; 
+    width: 380px;
+    background: none;
+    border: 1px solid #ccc;
+    outline: none;
+}
+.btn.btn-primary {
+    padding: 10px; 
+    width: 380px;
+    background: none;
+    border: 1px solid #000;
+    outline: none;
+    background: #fff;
+    color: #000;
+}

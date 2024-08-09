@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Item</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="/static/js/jquery-3.7.0.min.js"></script>
+    <script src="/static/js/jquery-ui.min.js"></script>
+    <style>
+        .post-item-form {
+            height: 10vh;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .post-item-form h1 {
+            font-size: 22px;
+            text-align: center;
+            margin: 20px 0 50px;
+        }
+        .post-item-form div {
+            margin-bottom: 15px;
+        }
+        .post-item-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .post-item-form input[type="text"],
+        .post-item-form textarea,
+        .post-item-form input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .post-item-form button {
+            display: block;
+            width: 450px;
+            padding: 10px;
+            background: #F2A03D;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .post-item-form button:hover {
+            background: #45a049;
+        }
+        .preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .preview img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <div class="inner">
+            <nav class="gnb">
+                <div class="menu-list">
+                    <ul class="top-menu clear">
+                        <li><a href="#a">Search</a></li>
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                        <li><a href="#a">Wish</a></li>
+                        <li><a href="#a">Cart</a></li>
+                    </ul>
+
+                    <ul class="categorie">
+                        <li><a href="#a">물품교환</a></li>
+                        <li><a href="#a">내가 올린 물품</a></li>
+                        <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
+                        <li><a href="#a">이번주 급상승 물품</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- btnBar -->
+            <div class="btnBar">
+                <a href="#" class="btn-menu">
+                    <span class="item"></span>
+                    <span class="item"></span>
+                    <span class="item"></span>
+                </a>
+             </div>
+        </div>
+        <div class="contents">
+            <div class="title">
+                <a href="/main">BagguZangter</a>
+            </div>
+            <div class="post-item-form">
+                <h1>내 물건 교환하기</h1>
+                <form action="{{ url_for('post_item') }}" method="post" enctype="multipart/form-data">
+                    <div>
+                        <label for="title">제목:</label>
+                        <input type="text" id="title" name="title" required>
+                    </div>
+                    <div>
+                        <label for="description">자세한 설명:</label>
+                        <textarea id="description" name="description" required></textarea>
+                    </div>
+                    <div>
+                        <label for="image">Image:</label>
+                        <input  type="file" id="image" name="image" accept="image/*" required onchange="previewImage(event)">
+                    </div>
+                    <div class="preview">
+                        <img id="preview" src="#" alt="Image Preview" style="display: none;">
+                    </div>
+                    <div>
+                        <button type="submit">Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- //inner -->
+    <footer>
+        <div class="f-css">
+            <p>고객센터</p>
+            <p class="f-bold">1541-1633 <span>l</span> 평일 오전 10시 ~ 오후5시</p>
+            <p class="f-bold">dawon2275@naver.com</p>
+        </div>
+        <div class="f-news">
+            <ul>
+                <li><a href="#">뉴스레터</a></li>
+                <li><a href="#">온라인 서포트</a></li>
+                <li><a href="#">회사 소개</a></li>
+            </ul>
+        </div>
+        <div class="f-sns">
+            <ul>
+                <li><a href="#">인스타그램</a></li>
+                <li><a href="#">카카오톡</a></li>
+                <li><a href="#">뮤직</a></li>
+            </ul>
+        </div>
+        <span class="copy">&copy;2024 Facade BagguZangter</span>
+    </footer>
+    <!-- //footer -->
+    <script>
+        function previewImage(event) {
+            var reader = new FileReader();
+            reader.onload = function(){
+                var output = document.getElementById('preview');
+                output.src = reader.result;
+                output.style.display = 'block';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
+</body>
+</html>

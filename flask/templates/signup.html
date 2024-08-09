@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>account</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+
+    <script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+</head>
+<body>
+    <div id="wrap">
+        <div class="inner">
+            <nav class="gnb">
+                <div class="menu-list">
+                    <ul class="top-menu clear">
+                        <li><a href="#a">Search</a></li>
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        <li><a href="#a">Wish</a></li>
+                        <li><a href="#a">Cart</a></li>
+                    </ul>
+                    <ul class="categorie">
+                        <li><a href="#a">New Collection</a></li>
+                        <li><a href="#a">Shop</a></li>
+                        <li><a href="#a">Signature</a></li>
+                        <li><a href="#a">Collection</a></li>
+                        <li><a href="#a">Journal</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- btnBar -->
+            <a href="#" class="btn-menu">
+                <span class="item"></span>
+                <span class="item"></span>
+                <span class="item"></span>
+            </a>
+        </div>
+        <div class="contents">
+            <div class="title">
+                <a href="index.html">BagguZangter</a>
+            </div>
+            <form class="mb-5" action="{{ url_for('signup') }}" method="post" style="padding: 20px;">
+                <h1 class="h">회원가입</h1>
+                <div class="mb-3">
+                    <p>아이디 *</p>
+                    <input type="text" class="form-control" name="username" placeholder="name@email.com">
+                </div>
+                <div class="mb-3">
+                    <p>비밀번호 *</p>
+                    <input type="password" class="form-control" name="password" placeholder="숫자/문자 4자리이상">
+                </div>
+                <div class="mb-3">
+                    <p>닉네임 *</p>
+                    <input type="text" class="form-control" name="nickname" placeholder="Nickname">
+                </div>
+                <div class="ac">
+                    <p>휴대폰 *</p>
+                    <select id="phone-n">
+                        <option>010</option>
+                        <option>011</option>
+                        <option>02</option>
+                    </select>
+                    <p class="h">-</p>
+                    <input type="text" class="ac-phone">
+                    <p class="h">-</p>
+                    <input type="text" class="ac-phone">
+                </div>
+
+                <div class="checkbox" style="margin-bottom: 20px;">
+                    <div class="check">
+                        <input type="checkbox" id="ac-check1">
+                        <label for="ac-check1" onclick="selectAll(this)">이용약관에 모두 동의합니다.</label>
+                    </div>
+
+                    <div class="check">
+                        <input type="checkbox" id="ac-check2">
+                        <label for="ac-check2">[필수] <u><a href="#">이용약관</a></u>에 모두 동의합니다.</label>
+                    </div>
+                    <div class="check">
+                        <input type="checkbox" id="ac-check3">
+                        <label for="ac-check3">[필수] <u><a href="#">개인정보 수집 및 이용</a></u>에 동의합니다.</label>
+                    </div>
+                    <div class="check">
+                        <input type="checkbox" id="ac-check4">
+                        <label for="ac-check4">[선택] 마케팅 정보 SNS 수신에 동의합니다.</label>
+                    </div>
+                </div>
+                <!-- //체크박스 이용약관 -->
+                <button type="submit" class="btn btn-primary" id="signUpButton">가입하기</button>
+            </form>
+        </div>
+    </div>
+    <!-- //inner -->
+    <footer>
+        <div class="f-css">
+            <p>고객센터</p>
+            <p class="f-bold">1541-1633 <span>l</span> 평일 오전 10시 ~ 오후5시</p>
+            <p class="f-bold">dawon2275@naver.com</p>
+        </div>
+        <div class="f-news">
+            <ul>
+                <li><a href="#">뉴스레터</a></li>
+                <li><a href="#">온라인 서포트</a></li>
+                <li><a href="#">회사 소개</a></li>
+            </ul>
+        </div>
+        <div class="f-sns">
+            <ul>
+                <li><a href="#">인스타그램</a></li>
+                <li><a href="#">카카오톡</a></li>
+                <li><a href="#">뮤직</a></li>
+            </ul>
+        </div>
+        <span class="copy">&copy;2024 Facade BagguZangter</span>
+    </footer>
+    <!-- //footer -->
+    <script>
+        function selectAll(selectAll) {
+            const checkBox = document.querySelectorAll('input[type="checkbox"]');
+            checkBox.forEach((checkbox) => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
+</body>
+</html>

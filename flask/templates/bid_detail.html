@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bid Detail</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <style>
+        .bid-detail {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        .bid-detail h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .bid-detail img {
+            display: block;
+            margin: 0 auto 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        .bid-detail p {
+            font-size: 1.2em;
+        }
+        .bid-detail small {
+            display: block;
+            text-align: center;
+            color: #666;
+            margin-top: 10px;
+        }
+        .custom-btn {
+            background-color: #007BFF; /* 파란색 배경 */
+            color: white; /* 흰색 글씨 */
+            padding: 10px 20px; /* 패딩 */
+            margin: 10px 0; /* 위아래 마진 */
+            border: none; /* 테두리 없음 */
+            border-radius: 5px; /* 둥근 모서리 */
+            cursor: pointer; /* 커서 포인터로 변경 */
+            font-size: 16px; /* 글씨 크기 */
+            display: inline-block; /* 인라인 블록으로 설정 */
+            text-align: center; /* 텍스트 중앙 정렬 */
+            text-decoration: none; /* 텍스트 밑줄 제거 */
+        }
+        .custom-btn:hover {
+            background-color: #0056b3; /* 호버 시 약간 더 어두운 파란색 */
+        }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <div class="inner">
+            <nav class="gnb">
+                <div class="menu-list">
+                    <ul class="top-menu clear">
+                        <li><a href="#a">Search</a></li>
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        <li><a href="#a">Wish</a></li>
+                        <li><a href="#a">Cart</a></li>
+                    </ul>
+
+                    <ul class="categorie">
+                        <li><a href="#a">New Collection</a></li>
+                        <li><a href="#a">Shop</a></li>
+                        <li><a href="#a">Signature</a></li>
+                        <li><a href="#a">Collection</a></li>
+                        <li><a href="#a">Journal</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- btnBar -->
+            <a href="#" class="btn-menu">
+                <span class="item"></span>
+                <span class="item"></span>
+                <span class="item"></span>
+            </a>
+        </div>
+        <div class="contents">
+            <div class="title">
+                <a href="index.html">BagguZangter</a>
+            </div>
+            <div class="bid-detail">
+                <h1>{{ bid.title }}</h1>
+                <img src="{{ bid.image_url }}" alt="{{ bid.title }}">
+                <p>{{ bid.description }}</p>
+                <small>Posted on {{ bid.created_at }} by {{ bid.nickname }}</small>
+
+                <!-- Back to item detail 버튼 -->
+                <button class="custom-btn" onclick="window.location.href='{{ url_for('item_detail', item_id=bid.item_id) }}'">Back to item detail</button>
+
+                <!-- Chat with the seller 버튼 -->
+                <button class="custom-btn" onclick="window.location.href='{{ url_for('create_chat_room', bid_id=bid.id) }}'">Chat with the seller</button>
+            </div>
+        </div>
+    </div>
+    <!-- //inner -->
+    <footer>
+        <div class="f-css">
+            <p>고객센터</p>
+            <p class="f-bold">1541-1633 <span>l</span> 평일 오전 10시 ~ 오후5시</p>
+            <p class="f-bold">dawon2275@naver.com</p>
+        </div>
+        <div class="f-news">
+            <ul>
+                <li><a href="#">뉴스레터</a></li>
+                <li><a href="#">온라인 서포트</a></li>
+                <li><a href="#">회사 소개</a></li>
+            </ul>
+        </div>
+        <div class="f-sns">
+            <ul>
+                <li><a href="#">인스타그램</a></li>
+                <li><a href="#">카카오톡</a></li>
+                <li><a href="#">뮤직</a></li>
+            </ul>
+        </div>
+        <span class="copy">&copy;2024 Facade BagguZangter</span>
+    </footer>
+</body>
+</html>

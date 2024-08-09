@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <style>
+        .chat-room-list {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        .chat-room-list h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .chat-room {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .chat-room img {
+            width: 100px;
+            height: 100px;
+            margin-right: 20px;
+            object-fit: cover;
+        }
+        .chat-room .info {
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-room .info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        .chat-room .info p {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+        }
+        .chat-room .info small {
+            color: #666;
+        }
+        .chat-room .info .leave-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <div class="inner">
+            <nav class="gnb">
+                <div class="menu-list">
+                    <ul class="top-menu clear">
+                        <li><a href="#a">Search</a></li>
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        <li><a href="#a">Wish</a></li>
+                        <li><a href="#a">Cart</a></li>
+                    </ul>
+
+                    <ul class="categorie">
+                        <li><a href="#a">New Collection</a></li>
+                        <li><a href="#a">Shop</a></li>
+                        <li><a href="#a">Signature</a></li>
+                        <li><a href="#a">Collection</a></li>
+                        <li><a href="#a">Journal</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <!-- btnBar -->
+            <a href="#" class="btn-menu">
+                <span class="item"></span>
+                <span class="item"></span>
+                <span class="item"></span>
+            </a>
+        </div>
+        <div class="contents">
+            <div class="title">
+                <a href="index.html">BagguZangter</a>
+            </div>
+            <div class="chat-room-list">
+                <h1>Chat Rooms</h1>
+                {% for room in rooms %}
+                    <div class="chat-room">
+                        <img src="{{ room.item_image_url }}" alt="{{ room.item_title }}">
+                        <div class="info">
+                            <h3>{{ room.item_title }}</h3>
+                            <p>{{ room.user1_nickname }}와 {{ room.user2_nickname }}의 채팅방</p>
+                            <button onclick="window.location.href='{{ url_for('chat_room', room_id=room.id) }}'">Enter Chat Room</button>
+                            <button class="leave-btn" onclick="leaveRoom({{ room.id }})">Leave Room</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <!-- //inner -->
+    <footer>
+        <div class="f-css">
+            <p>고객센터</p>
+            <p class="f-bold">1541-1633 <span>l</span> 평일 오전 10시 ~ 오후5시</p>
+            <p class="f-bold">dawon2275@naver.com</p>
+        </div>
+        <div class="f-news">
+            <ul>
+                <li><a href="#">뉴스레터</a></li>
+                <li><a href="#">온라인 서포트</a></li>
+                <li><a href="#">회사 소개</a></li>
+            </ul>
+        </div>
+        <div class="f-sns">
+            <ul>
+                <li><a href="#">인스타그램</a></li>
+                <li><a href="#">카카오톡</a></li>
+                <li><a href="#">뮤직</a></li>
+            </ul>
+        </div>
+        <span class="copy">&copy;2024 Facade BagguZangter</span>
+    </footer>
+    <script>
+        function leaveRoom(roomId) {
+            if (confirm('Are you sure you want to leave this chat room?')) {
+                fetch(`/leave_room/${roomId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to leave the chat room.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

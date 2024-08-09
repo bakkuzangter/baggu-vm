@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="/static/js/jquery-3.7.0.min.js"></script>
+    <script src="/static/js/jquery-ui.min.js"></script>
+    <title>BagguZangter</title>
+    <style>
+        .box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .box img {
+            width: 150px;
+            height: 150px;
+            margin-right: 20px;
+            object-fit: cover;
+        }
+        .box .info {
+            display: flex;
+            flex-direction: column;
+        }
+        .box .info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        .box .info p {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+        }
+        .box .info small {
+            color: #666;
+        }
+        .box .info .delete-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .write-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            font-size: 30px;
+            text-align: center;
+            line-height: 50px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .popup-menu {
+            display: none;
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            width: 150px;
+            padding: 10px 0;
+            z-index: 1000;
+        }
+        .popup-item {
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+        }
+        .popup-item:hover {
+            background-color: #555;
+        }
+        .popup-item span {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <!-- container -->
+        <div class="container">
+            <!-- intro -->
+            {% if session.show_intro %}
+                <div class="intro">
+                    <img class="first-text" src="{{ url_for('static', filename='img/intro.png') }}" alt="intro">
+                </div>
+            {% endif %}
+            <!-- header -->
+            <div class="inner">
+                <nav class="gnb">
+                    <div class="menu-list">
+                        <ul class="top-menu clear">
+                            <li><a href="#a">Search</a></li>
+                            {% if 'user_id' in session %}
+                                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                            {% else %}
+                                <li><a href="{{ url_for('login') }}">Login</a></li>
+                            {% endif %}
+                            <li><a href="#a">Wish</a></li>
+                            <li><a href="#a">Cart <!-- <span class="cart">(0)</span> --></a></li>
+                        </ul>
+                        <h3>Welcome, {{ username }}!</h3>
+                        <ul class="categorie">
+                            <li><a href="#a">물품교환</a></li>
+                            <li><a href="#a">내가 올린 물품</a></li>
+                            <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
+                            <li><a href="#a">이번주 급상승 물품</a></li>
+                        </ul>
+                    </div>
+                </nav>
+                <!-- btnBar -->
+                <div class="btnBar">
+                    <a href="#" class="btn-menu">
+                        <span class="item"></span>
+                        <span class="item"></span>
+                        <span class="item"></span>
+                    </a>
+                </div>
+            </div>
+            <div class="contents">
+                <div class="title">
+                    <a href="/main">BagguZangter</a>
+                </div>
+                
+                <div class="box-Area">
+                    {% for item in items %}
+                        <div class="box">
+                            <a href="{{ url_for('item_detail', item_id=item.id) }}">
+                                <img src="{{ item.image_url }}" alt="{{ item.title }}" style="width: 100px; height: 100px;">
+                            </a>
+                            <div class="info">
+                                <h3><a href="{{ url_for('item_detail', item_id=item.id) }}">{{ item.title }}</a></h3>
+                                <p>{{ item.description }}</p>
+                                <small>Posted on {{ item.created_at }} by {{ item.nickname }}</small>
+                                {% if item.user_id == session['user_id'] %}
+                                    <button class="delete-btn" onclick="deleteItem({{ item.id }})">Delete</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- main -->
+
+            <!--fixedBanner -->
+            <section class="fixed-banner">
+                
+            </section>
+
+            <!-- Floating Action Button -->
+            <div>
+                <button id="writeButton" class="write-button">+</button>
+                <div id="popupMenu" class="popup-menu">
+                    <div class="popup-item" onclick="location.href='{{ url_for('post_item') }}'"><span>물품 올리기</span></div>
+                    <div class="popup-item" onclick="location.href='{{ url_for('chat_rooms') }}'"><span>채팅방 보기</span></div>
+                </div>
+            </div>
+
+        </div>
+        <!-- //container -->
+    </div>
+    <!-- //wrap -->
+    <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
+    <script>
+        function deleteItem(itemId) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                fetch(`/delete_item/${itemId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to delete the item.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const writeButton = document.getElementById('writeButton');
+            const popupMenu = document.getElementById('popupMenu');
+
+            // Adjust the position of the popup menu to be relative to the write button
+            writeButton.addEventListener('click', () => {
+                if (popupMenu.style.display === 'none' || popupMenu.style.display === '') {
+                    popupMenu.style.display = 'block';
+                } else {
+                    popupMenu.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!writeButton.contains(event.target) && !popupMenu.contains(event.target)) {
+                    popupMenu.style.display = 'none';
+                }
+            });
+
+            // Adjust popup menu position relative to the write button
+            popupMenu.style.position = 'absolute';
+            popupMenu.style.bottom = '80px';
+            popupMenu.style.right = '40px';
+        });
+    </script>
+</body>
+</html>

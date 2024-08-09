@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <style>
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        .item-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .item-info .item {
+            width: 48%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: #f9f9f9;
+        }
+        .item-info .item img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: scroll;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+        }
+        .chat-message .sender {
+            font-weight: bold;
+        }
+        .chat-form input[type="text"] {
+            width: calc(100% - 100px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .chat-form button {
+            width: 80px;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .leave-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <button class="leave-btn" onclick="leaveRoom({{ room.id }})">Leave Room</button>
+        <h1>Chat with {{ other_user.nickname }}</h1>
+        <div class="item-info">
+            <div class="item">
+                <h2>{{ post_item.nickname }}의 물건</h2>
+                <h3>{{ post_item.title }}</h3>
+                <img src="{{ post_item.image_url }}" alt="{{ post_item.title }}">
+                <p>{{ post_item.description }}</p>
+                <small>Posted by {{ post_item.nickname }}</small>
+            </div>
+            <div class="item">
+                <h2>{{ bid.nickname }}의 물건</h2>
+                <h3>{{ bid.title }}</h3>
+                <img src="{{ bid.image_url }}" alt="{{ bid.title }}">
+                <p>{{ bid.description }}</p>
+                <small>Bid by {{ bid.nickname }}</small>
+            </div>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            {% for message in messages %}
+                <div class="chat-message">
+                    <div class="sender">{{ 'You' if message.sender_id == session['user_id'] else message.nickname }}</div>
+                    <div class="message">{{ message.message }}</div>
+                    <div class="timestamp">{{ message.timestamp }}</div>
+                </div>
+            {% endfor %}
+        </div>
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="message" placeholder="Type your message here...">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var room = '{{ room.id }}';
+
+        socket.on('connect', function() {
+            socket.emit('join', {username: "{{ session['nickname'] }}", room: room});
+        });
+
+        socket.on('message', function(data) {
+            $('#chat-messages').append('<div class="chat-message"><div class="sender">' + data.msg + '</div></div>');
+        });
+
+        socket.on('receive_message', function(data) {
+            $('#chat-messages').append('<div class="chat-message"><div class="sender">' + data.username + '</div><div class="message">' + data.message + '</div><div class="timestamp">' + data.timestamp + '</div></div>');
+        });
+
+        $('#chat-form').on('submit', function(e) {
+            e.preventDefault();
+            var message = $('#message').val();
+            socket.emit('send_message', {username: "{{ session['nickname'] }}", room: room, message: message});
+            $('#message').val('');
+        });
+
+        function leaveRoom(roomId) {
+            if (confirm('Are you sure you want to leave this chat room?')) {
+                fetch(`/leave_room/${roomId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = "{{ url_for('chat_rooms') }}";
+                    } else {
+                        alert('Failed to leave the chat room.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
