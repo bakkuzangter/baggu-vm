@@ -11,11 +11,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')  # your_secret_key should be in your .env file
+app.secret_key = 'your_secret_key_here'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-# Initialize Flask-SocketIO with gevent as the async mode
-socketio = SocketIO(app, async_mode='gevent')
+# Initialize Flask-SocketIO with eventlet as the async mode
+socketio = SocketIO(app, async_mode='eventlet')
 
 # RDS MySQL configuration
 DATABASE = 'database.db'
@@ -316,5 +316,4 @@ def leave_chat_room(room_id):
         return jsonify({'error': 'Room not found or unauthorized'}), 404
 
 if __name__ == '__main__':
-    # Running the app using SocketIO's run method with the gevent server
-    socketio.run(app, host='0.0.0.0', port=8000)
+    socketio.run(app, host='127.0.0.1', port=5000, debug=True)
