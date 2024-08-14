@@ -1,18 +1,26 @@
-version: "3.7"
+version: '3.8'
 
 services:
-  flask:
-    build: ./flask
-    container_name: flask
-    restart: always
-    environment:
-      - APP_NAME=bakkuzangter
-    expose:
-      - 5000
+  web:
+    build:
+      context: ./flask
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  # Flask 애플리케이션이 내부적으로 8000 포트에서 실행됨
+    networks:
+      - webnet
 
   nginx:
-    build: ./nginx
-    container_name: nginx
-    restart: always
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "80:80"  # Nginx가 외부에서 80 포트로 접근
+    depends_on:
+      - web  # Nginx는 web 서비스가 준비된 후에 시작됨
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    driver: bridge
