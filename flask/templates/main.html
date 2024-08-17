@@ -18,6 +18,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative; /* 이미지 겹치기 위해 추가 */
         }
         .box img {
             width: 150px;
@@ -49,6 +50,23 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        /* 거래 완료 이미지 스타일 */
+        .completed-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px; /* 이미지 크기 조절 */
+            height: 120px; /* 이미지 크기 조절 */
+            background-image: url('{{ url_for('static', filename='img/complete.png') }}');
+            background-size: contain; /* 이미지 크기 고정 */
+            background-repeat: no-repeat; /* 반복 방지 */
+            background-position: center; /* 이미지가 중앙에 위치하도록 설정 */
+            opacity: 1;
+            pointer-events: none; /* 클릭 방지 */
+            transform: translate(10%, 10%); /* 이미지를 완전히 중앙에 맞추기 위해 조정 */
+        }
+
         .write-button {
             position: fixed;
             bottom: 20px;
@@ -142,6 +160,9 @@
                         <div class="box">
                             <a href="{{ url_for('item_detail', item_id=item.id) }}">
                                 <img src="{{ item.image_url }}" alt="{{ item.title }}" style="width: 100px; height: 100px;">
+                                {% if item.status == 'completed' %}
+                                    <div class="completed-overlay"></div>
+                                {% endif %}
                             </a>
                             <div class="info">
                                 <h3><a href="{{ url_for('item_detail', item_id=item.id) }}">{{ item.title }}</a></h3>

@@ -179,8 +179,28 @@ def bid_detail(bid_id):
     bid = conn.execute('SELECT * FROM bids WHERE id = ?', (bid_id,)).fetchone()
     bid = dict(bid)  # sqlite3.Row 객체를 dict로 변환
     bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
+
+    item = conn.execute('SELECT * FROM items WHERE id = ?', (bid['item_id'],)).fetchone()
+    item = dict(item)
+    item['image_url'] = url_for('static', filename=convert_path_to_url(item['image_url']))
+
     conn.close()
-    return render_template('bid_detail.html', bid=bid)
+    return render_template('bid_detail.html', bid=bid, item=item)
+
+@app.route('/complete_exchange/<int:bid_id>', methods=['POST'])
+def complete_exchange(bid_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    bid = conn.execute('SELECT * FROM bids WHERE id = ?', (bid_id,)).fetchone()
+    if bid:
+        # 주어진 입찰이 메인 아이템과 연결된 경우 거래 완료로 표시
+        conn.execute('UPDATE items SET status = ? WHERE id = ?', ('completed', bid['item_id']))
+        conn.commit()
+    conn.close()
+
+    return redirect(url_for('main'))
 
 @app.route('/create_chat_room/<int:bid_id>')
 def create_chat_room(bid_id):
@@ -316,4 +336,4 @@ def leave_chat_room(room_id):
         return jsonify({'error': 'Room not found or unauthorized'}), 404
 
 if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', debug=True)
