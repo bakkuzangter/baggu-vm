@@ -16,6 +16,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"  # Nginx가 외부에서 80 포트로 접근
+    volumes:
+      - ./flask/static:/app/static
     depends_on:
       - web  # Nginx는 web 서비스가 준비된 후에 시작됨
     networks:

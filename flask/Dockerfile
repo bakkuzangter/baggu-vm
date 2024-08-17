@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 COPY . /app
 
 # Gunicorn을 사용해 Flask 앱 실행
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "app:app"]
+CMD ["gunicorn", "-w", "4", "-k", "eventlet", "-b", "0.0.0.0:8000", "app:app"]
