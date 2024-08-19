@@ -21,8 +21,8 @@ docker-compose==1.29.2
 dockerpty==0.4.1
 docopt==0.6.2
 ec2-hibinit-agent==1.0.0
-Flask==3.0.3
-Flask-SocketIO==5.3.6
+Flask
+Flask-SocketIO
 h11==0.14.0
 hibagent==1.0.1
 httplib2==0.20.2
@@ -83,3 +83,4 @@ Werkzeug==3.0.3
 wsproto==1.2.0
 zipp==1.0.0
 zope.interface==5.4.0
+gunicorn
