@@ -3,7 +3,7 @@ from flask_socketio import SocketIO, join_room, leave_room as socketio_leave_roo
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
-import sqlite3
+import pymysql
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -17,15 +17,21 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 # Initialize Flask-SocketIO with eventlet as the async mode
 socketio = SocketIO(app, async_mode='eventlet')
 
-# RDS MySQL configuration
-DATABASE = 'database.db'
-
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+# MySQL database configuration
+DATABASE_HOST = '217.83.162.61'
+DATABASE_USER = 'root'
+DATABASE_PASSWORD = 'VMware1!'
+DATABASE_NAME = 'mydatabase'  # 실제 사용할 데이터베이스 이름으로 변경하세요.
 
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
+    conn = pymysql.connect(
+        host=DATABASE_HOST,
+        user=DATABASE_USER,
+        password=DATABASE_PASSWORD,
+        db=DATABASE_NAME,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor  # DictCursor를 사용하여 결과를 딕셔너리로 반환
+    )
     return conn
 
 def allowed_file(filename):
@@ -47,7 +53,9 @@ def login():
         password = request.form['password']
         
         conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+            user = cursor.fetchone()
         conn.close()
         
         if user and check_password_hash(user['password'], password):
@@ -69,7 +77,8 @@ def signup():
         hashed_password = generate_password_hash(password)
         
         conn = get_db_connection()
-        conn.execute('INSERT INTO users (username, password, nickname) VALUES (?, ?, ?)', (username, hashed_password, nickname))
+        with conn.cursor() as cursor:
+            cursor.execute('INSERT INTO users (username, password, nickname) VALUES (%s, %s, %s)', (username, hashed_password, nickname))
         conn.commit()
         conn.close()
         
@@ -87,11 +96,11 @@ def main():
         session['show_intro'] = False
 
     conn = get_db_connection()
-    items = conn.execute('SELECT * FROM items').fetchall()
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM items')
+        items = cursor.fetchall()
     conn.close()
 
-    # convert image paths to URLs
-    items = [dict(item) for item in items]
     for item in items:
         item['image_url'] = url_for('static', filename=convert_path_to_url(item['image_url']))
 
@@ -120,8 +129,9 @@ def post_item():
             image_url = os.path.join('uploads', filename)
             created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             conn = get_db_connection()
-            conn.execute('INSERT INTO items (title, description, image_url, user_id, created_at, nickname) VALUES (?, ?, ?, ?, ?, ?)', 
-                         (title, description, image_url, session['user_id'], created_at, session['nickname']))
+            with conn.cursor() as cursor:
+                cursor.execute('INSERT INTO items (title, description, image_url, user_id, created_at, nickname) VALUES (%s, %s, %s, %s, %s, %s)', 
+                               (title, description, image_url, session['user_id'], created_at, session['nickname']))
             conn.commit()
             conn.close()
             
@@ -134,14 +144,16 @@ def post_item():
 @app.route('/item/<int:item_id>')
 def item_detail(item_id):
     conn = get_db_connection()
-    item = conn.execute('SELECT * FROM items WHERE id = ?', (item_id,)).fetchone()
-    item = dict(item)  # sqlite3.Row 객체를 dict로 변환
-    item['image_url'] = url_for('static', filename=convert_path_to_url(item['image_url']))
-    bids = conn.execute('SELECT * FROM bids WHERE item_id = ?', (item_id,)).fetchall()
-    bids = [dict(bid) for bid in bids]
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM items WHERE id = %s', (item_id,))
+        item = cursor.fetchone()
+        cursor.execute('SELECT * FROM bids WHERE item_id = %s', (item_id,))
+        bids = cursor.fetchall()
+    conn.close()
+
     for bid in bids:
         bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
-    conn.close()
+
     return render_template('item_detail.html', item=item, bids=bids)
 
 @app.route('/bid_item/<int:item_id>', methods=['GET', 'POST'])
@@ -162,8 +174,9 @@ def bid_item(item_id):
             image_url = os.path.join('uploads', filename)
             created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             conn = get_db_connection()
-            conn.execute('INSERT INTO bids (item_id, title, description, image_url, user_id, created_at, nickname) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-                         (item_id, title, description, image_url, session['user_id'], created_at, session['nickname']))
+            with conn.cursor() as cursor:
+                cursor.execute('INSERT INTO bids (item_id, title, description, image_url, user_id, created_at, nickname) VALUES (%s, %s, %s, %s, %s, %s, %s)', 
+                               (item_id, title, description, image_url, session['user_id'], created_at, session['nickname']))
             conn.commit()
             conn.close()
             
@@ -176,15 +189,16 @@ def bid_item(item_id):
 @app.route('/bid_detail/<int:bid_id>')
 def bid_detail(bid_id):
     conn = get_db_connection()
-    bid = conn.execute('SELECT * FROM bids WHERE id = ?', (bid_id,)).fetchone()
-    bid = dict(bid)  # sqlite3.Row 객체를 dict로 변환
-    bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
+        bid = cursor.fetchone()
+        cursor.execute('SELECT * FROM items WHERE id = %s', (bid['item_id'],))
+        item = cursor.fetchone()
+    conn.close()
 
-    item = conn.execute('SELECT * FROM items WHERE id = ?', (bid['item_id'],)).fetchone()
-    item = dict(item)
+    bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
     item['image_url'] = url_for('static', filename=convert_path_to_url(item['image_url']))
 
-    conn.close()
     return render_template('bid_detail.html', bid=bid, item=item)
 
 @app.route('/complete_exchange/<int:bid_id>', methods=['POST'])
@@ -193,10 +207,11 @@ def complete_exchange(bid_id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    bid = conn.execute('SELECT * FROM bids WHERE id = ?', (bid_id,)).fetchone()
-    if bid:
-        # 주어진 입찰이 메인 아이템과 연결된 경우 거래 완료로 표시
-        conn.execute('UPDATE items SET status = ? WHERE id = ?', ('completed', bid['item_id']))
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
+        bid = cursor.fetchone()
+        if bid:
+            cursor.execute('UPDATE items SET status = %s WHERE id = %s', ('completed', bid['item_id']))
         conn.commit()
     conn.close()
 
@@ -208,22 +223,25 @@ def create_chat_room(bid_id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    bid = conn.execute('SELECT * FROM bids WHERE id = ?', (bid_id,)).fetchone()
-    existing_room = conn.execute('''
-        SELECT * FROM chat_rooms
-        WHERE bid_id = ? AND ((user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?))
-    ''', (bid_id, session['user_id'], bid['user_id'], bid['user_id'], session['user_id'])).fetchone()
-    
-    if existing_room:
-        chat_room = dict(existing_room)
-    else:
-        conn.execute('''
-            INSERT INTO chat_rooms (bid_id, user1_id, user2_id, created_at)
-            VALUES (?, ?, ?, ?)
-        ''', (bid_id, session['user_id'], bid['user_id'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        conn.commit()
-        chat_room = conn.execute('SELECT * FROM chat_rooms WHERE id = last_insert_rowid()').fetchone()
-        chat_room = dict(chat_room)
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
+        bid = cursor.fetchone()
+        cursor.execute('''
+            SELECT * FROM chat_rooms
+            WHERE bid_id = %s AND ((user1_id = %s AND user2_id = %s) OR (user1_id = %s AND user2_id = %s))
+        ''', (bid_id, session['user_id'], bid['user_id'], bid['user_id'], session['user_id']))
+        existing_room = cursor.fetchone()
+        
+        if existing_room:
+            chat_room = existing_room
+        else:
+            cursor.execute('''
+                INSERT INTO chat_rooms (bid_id, user1_id, user2_id, created_at)
+                VALUES (%s, %s, %s, %s)
+            ''', (bid_id, session['user_id'], bid['user_id'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            conn.commit()
+            cursor.execute('SELECT * FROM chat_rooms WHERE id = last_insert_id()')
+            chat_room = cursor.fetchone()
     
     conn.close()
     return redirect(url_for('chat_room', room_id=chat_room['id']))
@@ -234,23 +252,24 @@ def chat_room(room_id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    room = conn.execute('SELECT * FROM chat_rooms WHERE id = ?', (room_id,)).fetchone()
-    bid = conn.execute('SELECT * FROM bids WHERE id = ?', (room['bid_id'],)).fetchone()
-    post_item = conn.execute('SELECT * FROM items WHERE id = ?', (bid['item_id'],)).fetchone()
-    messages = conn.execute('SELECT * FROM messages WHERE room_id = ?', (room_id,)).fetchall()
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM chat_rooms WHERE id = %s', (room_id,))
+        room = cursor.fetchone()
+        cursor.execute('SELECT * FROM bids WHERE id = %s', (room['bid_id'],))
+        bid = cursor.fetchone()
+        cursor.execute('SELECT * FROM items WHERE id = %s', (bid['item_id'],))
+        post_item = cursor.fetchone()
+        cursor.execute('SELECT * FROM messages WHERE room_id = %s', (room_id,))
+        messages = cursor.fetchall()
 
-    messages = [dict(message) for message in messages]
     for message in messages:
         if message['timestamp']:
             message['timestamp'] = datetime.strptime(message['timestamp'], '%Y-%m-%d %H:%M:%S')
 
     user_id = session['user_id']
     other_user_id = room['user2_id'] if room['user1_id'] == user_id else room['user1_id']
-    other_user = conn.execute('SELECT nickname FROM users WHERE user_id = ?', (other_user_id,)).fetchone()
+    other_user = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (other_user_id,)).fetchone()
 
-    # Convert sqlite3.Row objects to dictionaries
-    post_item = dict(post_item)
-    bid = dict(bid)
     post_item['image_url'] = url_for('static', filename=convert_path_to_url(post_item['image_url']))
     bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
 
@@ -266,8 +285,9 @@ def handle_join(data):
 @socketio.on('send_message')
 def handle_send_message(data):
     conn = get_db_connection()
-    conn.execute('INSERT INTO messages (room_id, sender_id, message, timestamp) VALUES (?, ?, ?, ?)',
-                 (data['room'], session['user_id'], data['message'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+    with conn.cursor() as cursor:
+        cursor.execute('INSERT INTO messages (room_id, sender_id, message, timestamp) VALUES (%s, %s, %s, %s)',
+                       (data['room'], session['user_id'], data['message'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
     conn.commit()
     conn.close()
     emit('receive_message', {
@@ -282,20 +302,22 @@ def chat_rooms():
         return redirect(url_for('login'))
     
     conn = get_db_connection()
-    user_id = session['user_id']
-    rooms = conn.execute('''
-        SELECT * FROM chat_rooms
-        WHERE user1_id = ? OR user2_id = ?
-    ''', (user_id, user_id)).fetchall()
-    rooms = [dict(room) for room in rooms]
+    with conn.cursor() as cursor:
+        cursor.execute('''
+            SELECT * FROM chat_rooms
+            WHERE user1_id = %s OR user2_id = %s
+        ''', (session['user_id'], session['user_id']))
+        rooms = cursor.fetchall()
 
     for room in rooms:
-        bid = conn.execute('SELECT * FROM bids WHERE id = ?', (room['bid_id'],)).fetchone()
-        if bid:
-            room['item_title'] = bid['title']
-            room['item_image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
-            room['user1_nickname'] = conn.execute('SELECT nickname FROM users WHERE user_id = ?', (room['user1_id'],)).fetchone()['nickname']
-            room['user2_nickname'] = conn.execute('SELECT nickname FROM users WHERE user_id = ?', (room['user2_id'],)).fetchone()['nickname']
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT * FROM bids WHERE id = %s', (room['bid_id'],))
+            bid = cursor.fetchone()
+            if bid:
+                room['item_title'] = bid['title']
+                room['item_image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
+                room['user1_nickname'] = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (room['user1_id'],)).fetchone()['nickname']
+                room['user2_nickname'] = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (room['user2_id'],)).fetchone()['nickname']
     conn.close()
 
     return render_template('chat_rooms.html', rooms=rooms)
@@ -306,16 +328,18 @@ def delete_item(item_id):
         return jsonify({'error': 'Unauthorized access'}), 401
     
     conn = get_db_connection()
-    item = conn.execute('SELECT * FROM items WHERE id = ?', (item_id,)).fetchone()
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM items WHERE id = %s', (item_id,))
+        item = cursor.fetchone()
 
-    if item and item['user_id'] == session['user_id']:
-        conn.execute('DELETE FROM items WHERE id = ?', (item_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': 'Item deleted'}), 200
-    else:
-        conn.close()
-        return jsonify({'error': 'Item not found or unauthorized'}), 404
+        if item and item['user_id'] == session['user_id']:
+            cursor.execute('DELETE FROM items WHERE id = %s', (item_id,))
+            conn.commit()
+            conn.close()
+            return jsonify({'success': 'Item deleted'}), 200
+        else:
+            conn.close()
+            return jsonify({'error': 'Item not found or unauthorized'}), 404
     
 @app.route('/leave_chat_room/<int:room_id>', methods=['DELETE'])
 def leave_chat_room(room_id):
@@ -323,17 +347,19 @@ def leave_chat_room(room_id):
         return jsonify({'error': 'Unauthorized access'}), 401
 
     conn = get_db_connection()
-    room = conn.execute('SELECT * FROM chat_rooms WHERE id = ?', (room_id,)).fetchone()
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT * FROM chat_rooms WHERE id = %s', (room_id,))
+        room = cursor.fetchone()
 
-    if room and (room['user1_id'] == session['user_id'] or room['user2_id'] == session['user_id']):
-        conn.execute('DELETE FROM messages WHERE room_id = ?', (room_id,))
-        conn.execute('DELETE FROM chat_rooms WHERE id = ?', (room_id,))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': 'Room and messages deleted'}), 200
-    else:
-        conn.close()
-        return jsonify({'error': 'Room not found or unauthorized'}), 404
+        if room and (room['user1_id'] == session['user_id'] or room['user2_id'] == session['user_id']):
+            cursor.execute('DELETE FROM messages WHERE room_id = %s', (room_id,))
+            cursor.execute('DELETE FROM chat_rooms WHERE id = %s', (room_id,))
+            conn.commit()
+            conn.close()
+            return jsonify({'success': 'Room and messages deleted'}), 200
+        else:
+            conn.close()
+            return jsonify({'error': 'Room not found or unauthorized'}), 404
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='127.0.0.1', port=5000, debug=True)
