@@ -40,6 +40,10 @@ def allowed_file(filename):
 def convert_path_to_url(path):
     return path.replace('\\', '/')
 
+@app.route('/health')
+def health_check():
+    return 'OK', 200
+
 @app.route('/')
 def index():
     if 'user_id' in session:
@@ -362,4 +366,5 @@ def leave_chat_room(room_id):
             return jsonify({'error': 'Room not found or unauthorized'}), 404
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='0.0.0.0', port=8000)
+
