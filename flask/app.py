@@ -18,10 +18,10 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 socketio = SocketIO(app, async_mode='eventlet')
 
 # MySQL database configuration
-DATABASE_HOST = '217.83.162.61'
-DATABASE_USER = 'root'
-DATABASE_PASSWORD = 'VMware1!'
-DATABASE_NAME = 'mydatabase'  # 실제 사용할 데이터베이스 이름으로 변경하세요.
+DATABASE_HOST = os.getenv('AURORA_HOST')  # Aurora MySQL 클러스터 엔드포인트
+DATABASE_USER = os.getenv('AURORA_USER')  # Aurora MySQL 사용자 이름
+DATABASE_PASSWORD = os.getenv('AURORA_PASSWORD')  # Aurora MySQL 비밀번호
+DATABASE_NAME = os.getenv('AURORA_DB_NAME')  # Aurora MySQL 데이터베이스 이름
 
 def get_db_connection():
     conn = pymysql.connect(
@@ -30,7 +30,7 @@ def get_db_connection():
         password=DATABASE_PASSWORD,
         db=DATABASE_NAME,
         charset='utf8mb4',
-        cursorclass=pymysql.cursors.DictCursor  # DictCursor를 사용하여 결과를 딕셔너리로 반환
+        cursorclass=pymysql.cursors.DictCursor
     )
     return conn
 
@@ -362,4 +362,4 @@ def leave_chat_room(room_id):
             return jsonify({'error': 'Room not found or unauthorized'}), 404
 
 if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', debug=True)
