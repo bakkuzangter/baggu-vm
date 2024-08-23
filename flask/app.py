@@ -40,9 +40,9 @@ def allowed_file(filename):
 def convert_path_to_url(path):
     return path.replace('\\', '/')
 
-@app.route('/health')
-def health_check():
-    return 'OK', 200
+@app.route('/healthz')
+def healthz():
+    return '', 200
 
 @app.route('/')
 def index():
