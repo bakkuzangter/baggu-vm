@@ -48,7 +48,7 @@ def allowed_file(filename):
 
 def upload_to_s3(file, bucket_name, filename):
     try:
-        s3_client.upload_fileobj(file, bucket_name, filename, ExtraArgs={"ACL": "public-read"})
+        s3_client.upload_fileobj(file, bucket_name, filename)
         s3_url = f"https://{bucket_name}.s3.{S3_REGION}.amazonaws.com/{filename}"
         return s3_url
     except NoCredentialsError:
