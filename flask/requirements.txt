@@ -86,3 +86,4 @@ zope.interface==5.4.0
 pymysql
 gunicorn
 eventlet
+boto3
