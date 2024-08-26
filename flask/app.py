@@ -20,15 +20,17 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 socketio = SocketIO(app, async_mode='eventlet')
 
 # MySQL database configuration
-DATABASE_HOST = os.getenv('rds-test-db-instance-1.ch6oycw4ehe0.ap-northeast-2.rds.amazonaws.com')
-DATABASE_USER = os.getenv('admin')
-DATABASE_PASSWORD = os.getenv('VMware1!')
-DATABASE_NAME = os.getenv('my_database')
+# 직접 값을 설정하는 방식
+DATABASE_HOST = 'rds-test-db-instance-1.ch6oycw4ehe0.ap-northeast-2.rds.amazonaws.com'
+DATABASE_USER = 'admin'
+DATABASE_PASSWORD = 'VMware1!'
+DATABASE_NAME = 'my_database'
 
 # S3 configuration
-S3_BUCKET_NAME = os.getenv('baggu-s3')
-S3_REGION = os.getenv('ap-northeast-2')
-s3_client = boto3.client('s3')
+# S3 configuration - 수정된 부분
+S3_BUCKET_NAME = 'baggu-s3'
+S3_REGION = 'ap-northeast-2'
+s3_client = boto3.client('s3', region_name=S3_REGION)
 
 def get_db_connection():
     conn = pymysql.connect(
