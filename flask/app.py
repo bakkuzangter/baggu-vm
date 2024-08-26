@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
 import pymysql
+import boto3
+from botocore.exceptions import NoCredentialsError
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -18,10 +20,15 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 socketio = SocketIO(app, async_mode='eventlet')
 
 # MySQL database configuration
-DATABASE_HOST = os.getenv('AURORA_HOST')  # Aurora MySQL 클러스터 엔드포인트
-DATABASE_USER = os.getenv('AURORA_USER')  # Aurora MySQL 사용자 이름
-DATABASE_PASSWORD = os.getenv('AURORA_PASSWORD')  # Aurora MySQL 비밀번호
-DATABASE_NAME = os.getenv('AURORA_DB_NAME')  # Aurora MySQL 데이터베이스 이름
+DATABASE_HOST = os.getenv('rds-test-db-instance-1.ch6oycw4ehe0.ap-northeast-2.rds.amazonaws.com')
+DATABASE_USER = os.getenv('admin')
+DATABASE_PASSWORD = os.getenv('VMware1!')
+DATABASE_NAME = os.getenv('my_database')
+
+# S3 configuration
+S3_BUCKET_NAME = os.getenv('baggu-s3')
+S3_REGION = os.getenv('ap-northeast-2')
+s3_client = boto3.client('s3')
 
 def get_db_connection():
     conn = pymysql.connect(
@@ -37,8 +44,13 @@ def get_db_connection():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
-def convert_path_to_url(path):
-    return path.replace('\\', '/')
+def upload_to_s3(file, bucket_name, filename):
+    try:
+        s3_client.upload_fileobj(file, bucket_name, filename, ExtraArgs={"ACL": "public-read"})
+        s3_url = f"https://{bucket_name}.s3.{S3_REGION}.amazonaws.com/{filename}"
+        return s3_url
+    except NoCredentialsError:
+        return None
 
 @app.route('/healthz')
 def healthz():
@@ -105,9 +117,6 @@ def main():
         items = cursor.fetchall()
     conn.close()
 
-    for item in items:
-        item['image_url'] = url_for('static', filename=convert_path_to_url(item['image_url']))
-
     return render_template('main.html', username=session['username'], items=items)
 
 @app.route('/logout')
@@ -127,15 +136,17 @@ def post_item():
         
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+            s3_url = upload_to_s3(file, S3_BUCKET_NAME, filename)
             
-            image_url = os.path.join('uploads', filename)
+            if not s3_url:
+                flash('Failed to upload image to S3. Please try again.')
+                return redirect(url_for('post_item'))
+
             created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             conn = get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute('INSERT INTO items (title, description, image_url, user_id, created_at, nickname) VALUES (%s, %s, %s, %s, %s, %s)', 
-                               (title, description, image_url, session['user_id'], created_at, session['nickname']))
+                               (title, description, s3_url, session['user_id'], created_at, session['nickname']))
             conn.commit()
             conn.close()
             
@@ -155,9 +166,6 @@ def item_detail(item_id):
         bids = cursor.fetchall()
     conn.close()
 
-    for bid in bids:
-        bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
-
     return render_template('item_detail.html', item=item, bids=bids)
 
 @app.route('/bid_item/<int:item_id>', methods=['GET', 'POST'])
@@ -172,15 +180,17 @@ def bid_item(item_id):
         
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+            s3_url = upload_to_s3(file, S3_BUCKET_NAME, filename)
             
-            image_url = os.path.join('uploads', filename)
+            if not s3_url:
+                flash('Failed to upload image to S3. Please try again.')
+                return redirect(url_for('bid_item', item_id=item_id))
+
             created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             conn = get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute('INSERT INTO bids (item_id, title, description, image_url, user_id, created_at, nickname) VALUES (%s, %s, %s, %s, %s, %s, %s)', 
-                               (item_id, title, description, image_url, session['user_id'], created_at, session['nickname']))
+                               (item_id, title, description, s3_url, session['user_id'], created_at, session['nickname']))
             conn.commit()
             conn.close()
             
@@ -199,9 +209,6 @@ def bid_detail(bid_id):
         cursor.execute('SELECT * FROM items WHERE id = %s', (bid['item_id'],))
         item = cursor.fetchone()
     conn.close()
-
-    bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
-    item['image_url'] = url_for('static', filename=convert_path_to_url(item['image_url']))
 
     return render_template('bid_detail.html', bid=bid, item=item)
 
@@ -274,9 +281,6 @@ def chat_room(room_id):
     other_user_id = room['user2_id'] if room['user1_id'] == user_id else room['user1_id']
     other_user = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (other_user_id,)).fetchone()
 
-    post_item['image_url'] = url_for('static', filename=convert_path_to_url(post_item['image_url']))
-    bid['image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
-
     conn.close()
 
     return render_template('chat.html', room=room, messages=messages, bid=bid, post_item=post_item, other_user=other_user)
@@ -319,7 +323,6 @@ def chat_rooms():
             bid = cursor.fetchone()
             if bid:
                 room['item_title'] = bid['title']
-                room['item_image_url'] = url_for('static', filename=convert_path_to_url(bid['image_url']))
                 room['user1_nickname'] = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (room['user1_id'],)).fetchone()['nickname']
                 room['user2_nickname'] = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (room['user2_id'],)).fetchone()['nickname']
     conn.close()
@@ -367,4 +370,3 @@ def leave_chat_room(room_id):
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=8000)
-
