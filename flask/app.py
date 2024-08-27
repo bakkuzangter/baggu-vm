@@ -20,7 +20,6 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 socketio = SocketIO(app, async_mode='eventlet')
 
 # MySQL database configuration
-# 직접 값을 설정하는 방식
 DATABASE_HOST = 'rds-test-db-instance-1.ch6oycw4ehe0.ap-northeast-2.rds.amazonaws.com'
 DATABASE_USER = 'admin'
 DATABASE_PASSWORD = 'VMware1!'
