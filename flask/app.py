@@ -19,7 +19,7 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 # Initialize Flask-SocketIO with eventlet as the async mode
 socketio = SocketIO(app, async_mode='eventlet')
 
-# MySQL database configuration
+# MySQL3 database configuration
 DATABASE_HOST = 'rds-test-db-instance-1.ch6oycw4ehe0.ap-northeast-2.rds.amazonaws.com'
 DATABASE_USER = 'admin'
 DATABASE_PASSWORD = 'VMware1!'
