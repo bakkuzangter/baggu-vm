@@ -9,7 +9,7 @@ from botocore.exceptions import NoCredentialsError
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+#2 Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
