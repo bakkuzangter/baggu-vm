@@ -20,10 +20,10 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 socketio = SocketIO(app, async_mode='eventlet')
 
 # MySQL3 database configuration
-DATABASE_HOST = 'rds-test-db-instance-1.ch6oycw4ehe0.ap-northeast-2.rds.amazonaws.com'
-DATABASE_USER = 'admin'
+DATABASE_HOST = '217.83.162.61'
+DATABASE_USER = 'root'
 DATABASE_PASSWORD = 'VMware1!'
-DATABASE_NAME = 'my_database'
+DATABASE_NAME = 'mydatabase'
 
 # S3 configuration
 # S3 configuration - 수정된 부분
