@@ -24,6 +24,7 @@ COPY . /app
 # static 폴더에 권한 설정 추가
 RUN chmod -R 755 /app/static
 
+EXPOSE 8000
 
 # Gunicorn을 사용해 Flask 앱 실행
 CMD ["gunicorn", "-w", "4", "-k", "eventlet", "-b", "0.0.0.0:8000", "app:app"]
