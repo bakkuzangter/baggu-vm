@@ -21,7 +21,7 @@ socketio = SocketIO(app, async_mode='eventlet')
 
 # MySQL3 database configuration
 DATABASE_HOST = '217.83.162.61'
-DATABASE_USER = 'root'
+DATABASE_USER = 'admin'
 DATABASE_PASSWORD = 'VMware1!'
 DATABASE_NAME = 'mydatabase'
 
