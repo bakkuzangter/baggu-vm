@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-# Initialize Flask-SocketIO with eventlet as the async mode
+# Initialize Flask-SocketIO with eventlet as the async mode1
 socketio = SocketIO(app, async_mode='eventlet')
 
 # MySQL3 database configuration
