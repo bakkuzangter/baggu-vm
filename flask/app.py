@@ -26,7 +26,6 @@ DATABASE_PASSWORD = 'VMware1!'
 DATABASE_NAME = 'mydatabase'
 
 # S3 configuration
-# S3 configuration - 수정된 부분
 S3_BUCKET_NAME = 'baggu-s3'
 S3_REGION = 'ap-northeast-2'
 s3_client = boto3.client('s3', region_name=S3_REGION)
