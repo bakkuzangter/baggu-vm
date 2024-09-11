@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_socketio import SocketIO, join_room, leave_room as socketio_leave_room, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import os
+import os, logging
 import pymysql
 import boto3
 from botocore.exceptions import NoCredentialsError
@@ -51,6 +51,8 @@ def upload_to_s3(file, bucket_name, filename):
         return s3_url
     except NoCredentialsError:
         return None
+    
+logging.basicConfig(filename='/var/log/flask/app.log', level=logging.INFO)
 
 @app.route('/healthz')
 def healthz():
