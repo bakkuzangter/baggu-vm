@@ -17,25 +17,30 @@
                 <div class="menu-list">
                     <ul class="top-menu clear">
                         <li><a href="#a">Search</a></li>
-                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        {% if 'user_id' in session %}
+                            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('login') }}">Login</a></li>
+                        {% endif %}
                         <li><a href="#a">Wish</a></li>
                         <li><a href="#a">Cart</a></li>
                     </ul>
+                    <h3 style="text-align: center;">Welcome, {{ username }}!</h3>
                     <ul class="categorie">
-                        <li><a href="#a">New Collection</a></li>
-                        <li><a href="#a">Shop</a></li>
-                        <li><a href="#a">Signature</a></li>
-                        <li><a href="#a">Collection</a></li>
-                        <li><a href="#a">Journal</a></li>
+                        <li><a href="#a">물품교환</a></li>
+                        <li><a href="#a">내가 올린 물품</a></li>
+                        <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
+                        <li><a href="{{ url_for('my_transactions')}}">나의 거래 내역</a></li>
                     </ul>
                 </div>
             </nav>
-            <!-- btnBar -->
-            <a href="#" class="btn-menu">
-                <span class="item"></span>
-                <span class="item"></span>
-                <span class="item"></span>
-            </a>
+            <div class="btnBar">
+                <a href="#" class="btn-menu">
+                    <span class="item"></span>
+                    <span class="item"></span>
+                    <span class="item"></span>
+                </a>
+             </div>
         </div>
         <div class="contents">
             <div class="title">

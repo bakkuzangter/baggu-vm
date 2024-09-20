@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bid Detail</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="/static/js/jquery-3.7.0.min.js"></script>
+    <script src="/static/js/jquery-ui.min.js"></script>
     <style>
         .bid-detail {
             max-width: 800px;
@@ -54,32 +58,37 @@
 </head>
 <body>
     <div id="wrap">
-        <div class="inner">
-            <nav class="gnb">
-                <div class="menu-list">
-                    <ul class="top-menu clear">
-                        <li><a href="#a">Search</a></li>
-                        <li><a href="{{ url_for('login') }}">Login</a></li>
-                        <li><a href="#a">Wish</a></li>
-                        <li><a href="#a">Cart</a></li>
-                    </ul>
-
-                    <ul class="categorie">
-                        <li><a href="#a">New Collection</a></li>
-                        <li><a href="#a">Shop</a></li>
-                        <li><a href="#a">Signature</a></li>
-                        <li><a href="#a">Collection</a></li>
-                        <li><a href="#a">Journal</a></li>
-                    </ul>
-                </div>
-            </nav>
-            <!-- btnBar -->
-            <a href="#" class="btn-menu">
-                <span class="item"></span>
-                <span class="item"></span>
-                <span class="item"></span>
-            </a>
-        </div>
+            <!-- header -->
+            <div class="inner">
+                <nav class="gnb">
+                    <div class="menu-list">
+                        <ul class="top-menu clear">
+                            <li><a href="#a">Search</a></li>
+                            {% if 'user_id' in session %}
+                                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                            {% else %}
+                                <li><a href="{{ url_for('login') }}">Login</a></li>
+                            {% endif %}
+                            <li><a href="#a">Wish</a></li>
+                            <li><a href="#a">Cart</a></li>
+                        </ul>
+                        <h3 style="text-align: center;">Welcome, {{ username }}!</h3>
+                        <ul class="categorie">
+                            <li><a href="#a">물품교환</a></li>
+                            <li><a href="#a">내가 올린 물품</a></li>
+                            <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
+                            <li><a href="{{ url_for('my_transactions')}}">나의 거래 내역</a></li>
+                        </ul>
+                    </div>
+                </nav>
+                <div class="btnBar">
+                    <a href="#" class="btn-menu">
+                        <span class="item"></span>
+                        <span class="item"></span>
+                        <span class="item"></span>
+                    </a>
+                 </div>
+            </div>
         <div class="contents">
             <div class="title">
                 <a href="index.html">BagguZangter</a>
@@ -128,5 +137,6 @@
         </div>
         <span class="copy">&copy;2024 Facade BagguZangter</span>
     </footer>
+    <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
 </body>
 </html>

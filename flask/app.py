@@ -69,9 +69,9 @@ def login():
         password = request.form['password']
         
         conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-            user = cursor.fetchone()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        user = cursor.fetchone()
         conn.close()
         
         if user and check_password_hash(user['password'], password):
@@ -93,8 +93,8 @@ def signup():
         hashed_password = generate_password_hash(password)
         
         conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute('INSERT INTO users (username, password, nickname) VALUES (%s, %s, %s)', (username, hashed_password, nickname))
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO users (username, password, nickname) VALUES (%s, %s, %s)', (username, hashed_password, nickname))
         conn.commit()
         conn.close()
         
@@ -106,18 +106,30 @@ def main():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    if 'show_intro' not in session:
-        session['show_intro'] = True
-    else:
-        session['show_intro'] = False
+    sort_by = request.args.get('sort_by', 'date')  # 정렬 기준
+    order = request.args.get('order', 'desc')  # 정렬 방식 (기본: 내림차순)
+
+    # 현재 정렬 기준이 asc면 desc로 변경하고, desc면 asc로 변경
+    next_order = 'asc' if order == 'desc' else 'desc'
 
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT * FROM items')
-        items = cursor.fetchall()
+    cursor = conn.cursor()
+
+    # 정렬 기준에 따라 쿼리 실행
+    if sort_by == 'name':
+        query = f"SELECT * FROM items ORDER BY title {order}"
+    elif sort_by == 'date':
+        query = f"SELECT * FROM items ORDER BY created_at {order}"
+    elif sort_by == 'user':
+        query = f"SELECT * FROM items ORDER BY user_id {order}"
+    else:
+        query = "SELECT * FROM items ORDER BY created_at DESC"  # 기본 날짜순 내림차순
+    cursor.execute(query)
+    items = cursor.fetchall()
+
     conn.close()
 
-    return render_template('main.html', username=session['username'], items=items)
+    return render_template('main.html', username=session['username'], items=items, sort_by=sort_by, order=order, next_order=next_order)
 
 @app.route('/logout')
 def logout():
@@ -137,20 +149,18 @@ def post_item():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             s3_url = upload_to_s3(file, S3_BUCKET_NAME, filename)
-            
-            if not s3_url:
-                flash('Failed to upload image to S3. Please try again.')
-                return redirect(url_for('post_item'))
 
-            created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            conn = get_db_connection()
-            with conn.cursor() as cursor:
+            if s3_url:
+                created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                conn = get_db_connection()
+                cursor = conn.cursor()
                 cursor.execute('INSERT INTO items (title, description, image_url, user_id, created_at, nickname) VALUES (%s, %s, %s, %s, %s, %s)', 
                                (title, description, s3_url, session['user_id'], created_at, session['nickname']))
-            conn.commit()
-            conn.close()
-            
-            return redirect(url_for('main'))
+                conn.commit()
+                conn.close()
+                return redirect(url_for('main'))
+            else:
+                flash('Failed to upload image to S3')
         else:
             flash('Invalid file format. Please upload a PNG, JPG, JPEG, or GIF file.')
     
@@ -159,11 +169,11 @@ def post_item():
 @app.route('/item/<int:item_id>')
 def item_detail(item_id):
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT * FROM items WHERE id = %s', (item_id,))
-        item = cursor.fetchone()
-        cursor.execute('SELECT * FROM bids WHERE item_id = %s', (item_id,))
-        bids = cursor.fetchall()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM items WHERE id = %s', (item_id,))
+    item = cursor.fetchone()
+    cursor.execute('SELECT * FROM bids WHERE item_id = %s', (item_id,))
+    bids = cursor.fetchall()
     conn.close()
 
     return render_template('item_detail.html', item=item, bids=bids)
@@ -181,20 +191,18 @@ def bid_item(item_id):
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             s3_url = upload_to_s3(file, S3_BUCKET_NAME, filename)
-            
-            if not s3_url:
-                flash('Failed to upload image to S3. Please try again.')
-                return redirect(url_for('bid_item', item_id=item_id))
 
-            created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            conn = get_db_connection()
-            with conn.cursor() as cursor:
+            if s3_url:
+                created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                conn = get_db_connection()
+                cursor = conn.cursor()
                 cursor.execute('INSERT INTO bids (item_id, title, description, image_url, user_id, created_at, nickname) VALUES (%s, %s, %s, %s, %s, %s, %s)', 
                                (item_id, title, description, s3_url, session['user_id'], created_at, session['nickname']))
-            conn.commit()
-            conn.close()
-            
-            return redirect(url_for('item_detail', item_id=item_id))
+                conn.commit()
+                conn.close()
+                return redirect(url_for('item_detail', item_id=item_id))
+            else:
+                flash('Failed to upload image to S3')
         else:
             flash('Invalid file format. Please upload a PNG, JPG, JPEG, or GIF file.')
     
@@ -203,11 +211,11 @@ def bid_item(item_id):
 @app.route('/bid_detail/<int:bid_id>')
 def bid_detail(bid_id):
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
-        bid = cursor.fetchone()
-        cursor.execute('SELECT * FROM items WHERE id = %s', (bid['item_id'],))
-        item = cursor.fetchone()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
+    bid = cursor.fetchone()
+    cursor.execute('SELECT * FROM items WHERE id = %s', (bid['item_id'],))
+    item = cursor.fetchone()
     conn.close()
 
     return render_template('bid_detail.html', bid=bid, item=item)
@@ -218,12 +226,12 @@ def complete_exchange(bid_id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
-        bid = cursor.fetchone()
-        if bid:
-            cursor.execute('UPDATE items SET status = %s WHERE id = %s', ('completed', bid['item_id']))
-        conn.commit()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
+    bid = cursor.fetchone()
+    if bid:
+        cursor.execute('UPDATE items SET status = %s WHERE id = %s', ('completed', bid['item_id']))
+    conn.commit()
     conn.close()
 
     return redirect(url_for('main'))
@@ -234,25 +242,25 @@ def create_chat_room(bid_id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
-        bid = cursor.fetchone()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM bids WHERE id = %s', (bid_id,))
+    bid = cursor.fetchone()
+    cursor.execute('''
+        SELECT * FROM chat_rooms
+        WHERE bid_id = %s AND ((user1_id = %s AND user2_id = %s) OR (user1_id = %s AND user2_id = %s))
+    ''', (bid_id, session['user_id'], bid['user_id'], bid['user_id'], session['user_id']))
+    existing_room = cursor.fetchone()
+    
+    if existing_room:
+        chat_room = existing_room
+    else:
         cursor.execute('''
-            SELECT * FROM chat_rooms
-            WHERE bid_id = %s AND ((user1_id = %s AND user2_id = %s) OR (user1_id = %s AND user2_id = %s))
-        ''', (bid_id, session['user_id'], bid['user_id'], bid['user_id'], session['user_id']))
-        existing_room = cursor.fetchone()
-        
-        if existing_room:
-            chat_room = existing_room
-        else:
-            cursor.execute('''
-                INSERT INTO chat_rooms (bid_id, user1_id, user2_id, created_at)
-                VALUES (%s, %s, %s, %s)
-            ''', (bid_id, session['user_id'], bid['user_id'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-            conn.commit()
-            cursor.execute('SELECT * FROM chat_rooms WHERE id = last_insert_id()')
-            chat_room = cursor.fetchone()
+            INSERT INTO chat_rooms (bid_id, user1_id, user2_id, created_at)
+            VALUES (%s, %s, %s, %s)
+        ''', (bid_id, session['user_id'], bid['user_id'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+        conn.commit()
+        cursor.execute('SELECT * FROM chat_rooms WHERE id = last_insert_id()')
+        chat_room = cursor.fetchone()
     
     conn.close()
     return redirect(url_for('chat_room', room_id=chat_room['id']))
@@ -263,25 +271,32 @@ def chat_room(room_id):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    with conn.cursor() as cursor:
+    try:
+        cursor = conn.cursor()
         cursor.execute('SELECT * FROM chat_rooms WHERE id = %s', (room_id,))
         room = cursor.fetchone()
+        
         cursor.execute('SELECT * FROM bids WHERE id = %s', (room['bid_id'],))
         bid = cursor.fetchone()
+        
         cursor.execute('SELECT * FROM items WHERE id = %s', (bid['item_id'],))
         post_item = cursor.fetchone()
+        
         cursor.execute('SELECT * FROM messages WHERE room_id = %s', (room_id,))
         messages = cursor.fetchall()
 
-    for message in messages:
-        if message['timestamp']:
-            message['timestamp'] = datetime.strptime(message['timestamp'], '%Y-%m-%d %H:%M:%S')
+        for message in messages:
+            if message['timestamp']:
+                message['timestamp'] = datetime.strptime(message['timestamp'], '%Y-%m-%d %H:%M:%S')
 
-    user_id = session['user_id']
-    other_user_id = room['user2_id'] if room['user1_id'] == user_id else room['user1_id']
-    other_user = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (other_user_id,)).fetchone()
+        user_id = session['user_id']
+        other_user_id = room['user2_id'] if room['user1_id'] == user_id else room['user1_id']
 
-    conn.close()
+        cursor.execute('SELECT nickname FROM users WHERE user_id = %s', (other_user_id,))
+        other_user = cursor.fetchone()
+
+    finally:
+        conn.close()
 
     return render_template('chat.html', room=room, messages=messages, bid=bid, post_item=post_item, other_user=other_user)
 
@@ -293,9 +308,9 @@ def handle_join(data):
 @socketio.on('send_message')
 def handle_send_message(data):
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('INSERT INTO messages (room_id, sender_id, message, timestamp) VALUES (%s, %s, %s, %s)',
-                       (data['room'], session['user_id'], data['message'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO messages (room_id, sender_id, message, timestamp) VALUES (%s, %s, %s, %s)',
+                   (data['room'], session['user_id'], data['message'], datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
     conn.commit()
     conn.close()
     emit('receive_message', {
@@ -310,21 +325,32 @@ def chat_rooms():
         return redirect(url_for('login'))
     
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('''
-            SELECT * FROM chat_rooms
-            WHERE user1_id = %s OR user2_id = %s
-        ''', (session['user_id'], session['user_id']))
-        rooms = cursor.fetchall()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM chat_rooms
+        WHERE user1_id = %s OR user2_id = %s
+    ''', (session['user_id'], session['user_id']))
+    rooms = cursor.fetchall()
 
     for room in rooms:
-        with conn.cursor() as cursor:
-            cursor.execute('SELECT * FROM bids WHERE id = %s', (room['bid_id'],))
-            bid = cursor.fetchone()
-            if bid:
-                room['item_title'] = bid['title']
-                room['user1_nickname'] = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (room['user1_id'],)).fetchone()['nickname']
-                room['user2_nickname'] = conn.cursor().execute('SELECT nickname FROM users WHERE user_id = %s', (room['user2_id'],)).fetchone()['nickname']
+        cursor.execute('SELECT * FROM bids WHERE id = %s', (room['bid_id'],))
+        bid = cursor.fetchone()
+        if bid:
+            room['item_title'] = bid['title']
+
+            if 'static/' in bid['image_url']:
+                room['item_image_url'] = bid['image_url']
+            else:
+                room['item_image_url'] = url_for('static', filename=f'uploads/{bid["image_url"]}')
+
+        cursor.execute('SELECT nickname FROM users WHERE user_id = %s', (room['user1_id'],))
+        user1_nickname = cursor.fetchone()
+        room['user1_nickname'] = user1_nickname['nickname'] if user1_nickname else None
+
+        cursor.execute('SELECT nickname FROM users WHERE user_id = %s', (room['user2_id'],))
+        user2_nickname = cursor.fetchone()
+        room['user2_nickname'] = user2_nickname['nickname'] if user2_nickname else None
+
     conn.close()
 
     return render_template('chat_rooms.html', rooms=rooms)
@@ -335,38 +361,123 @@ def delete_item(item_id):
         return jsonify({'error': 'Unauthorized access'}), 401
     
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT * FROM items WHERE id = %s', (item_id,))
-        item = cursor.fetchone()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM items WHERE id = %s', (item_id,))
+    item = cursor.fetchone()
 
-        if item and item['user_id'] == session['user_id']:
-            cursor.execute('DELETE FROM items WHERE id = %s', (item_id,))
-            conn.commit()
-            conn.close()
-            return jsonify({'success': 'Item deleted'}), 200
-        else:
-            conn.close()
-            return jsonify({'error': 'Item not found or unauthorized'}), 404
-    
+    if item and item['user_id'] == session['user_id']:
+        cursor.execute('DELETE FROM items WHERE id = %s', (item_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': 'Item deleted'}), 200
+    else:
+        conn.close()
+        return jsonify({'error': 'Item not found or unauthorized'}), 404
+
 @app.route('/leave_chat_room/<int:room_id>', methods=['DELETE'])
 def leave_chat_room(room_id):
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized access'}), 401
 
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT * FROM chat_rooms WHERE id = %s', (room_id,))
-        room = cursor.fetchone()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM chat_rooms WHERE id = %s', (room_id,))
+    room = cursor.fetchone()
 
-        if room and (room['user1_id'] == session['user_id'] or room['user2_id'] == session['user_id']):
-            cursor.execute('DELETE FROM messages WHERE room_id = %s', (room_id,))
-            cursor.execute('DELETE FROM chat_rooms WHERE id = %s', (room_id,))
-            conn.commit()
-            conn.close()
-            return jsonify({'success': 'Room and messages deleted'}), 200
-        else:
-            conn.close()
-            return jsonify({'error': 'Room not found or unauthorized'}), 404
+    if room and (room['user1_id'] == session['user_id'] or room['user2_id'] == session['user_id']):
+        cursor.execute('DELETE FROM messages WHERE room_id = %s', (room_id,))
+        cursor.execute('DELETE FROM chat_rooms WHERE id = %s', (room_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': 'Room and messages deleted'}), 200
+    else:
+        conn.close()
+        return jsonify({'error': 'Room not found or unauthorized'}), 404
+
+@app.route('/my_transactions')
+def my_transactions():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT items.*, bids.title AS bid_title, bids.description AS bid_description, bids.image_url AS bid_image_url, bids.nickname AS bid_nickname
+        FROM items
+        JOIN bids ON items.id = bids.item_id
+        WHERE items.user_id = %s AND items.status = 'completed'
+    ''', (session['user_id'],))
+    my_posted_transactions = cursor.fetchall()
+
+    cursor.execute('''
+        SELECT items.*, bids.title AS bid_title, bids.description AS bid_description, bids.image_url AS bid_image_url, bids.nickname AS bid_nickname
+        FROM bids
+        JOIN items ON items.id = bids.item_id
+        WHERE bids.user_id = %s AND items.status = 'completed'
+    ''', (session['user_id'],))
+    my_bid_transactions = cursor.fetchall()
+
+    transaction_data_my_posts = []
+    for transaction in my_posted_transactions:
+        transaction_data_my_posts.append({
+            'my_item': {
+                'title': transaction['title'],
+                'description': transaction['description'],
+                'image_url': transaction['image_url'],
+                'nickname': transaction['nickname']
+            },
+            'bid_item': {
+                'title': transaction['bid_title'],
+                'description': transaction['bid_description'],
+                'image_url': transaction['bid_image_url'],
+                'nickname': transaction['bid_nickname']
+            }
+        })
+
+    transaction_data_my_bids = []
+    for transaction in my_bid_transactions:
+        transaction_data_my_bids.append({
+            'my_item': {
+                'title': transaction['bid_title'],
+                'description': transaction['bid_description'],
+                'image_url': transaction['bid_image_url'],
+                'nickname': transaction['bid_nickname']
+            },
+            'bid_item': {
+                'title': transaction['title'],
+                'description': transaction['description'],
+                'image_url': transaction['image_url'],
+                'nickname': transaction['nickname']
+            }
+        })
+
+    conn.close()
+
+    return render_template('my_transactions.html', 
+                           my_posted_transactions=transaction_data_my_posts, 
+                           my_bid_transactions=transaction_data_my_bids)
+
+@app.route('/search_items')
+def search_items():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    query = request.args.get('query', '').strip()
+
+    if not query:
+        flash('검색어를 입력해주세요.')
+        return redirect(url_for('main'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 검색어가 물품 제목에 포함된 물품을 검색
+    cursor.execute("SELECT * FROM items WHERE title LIKE %s", ('%' + query + '%',))
+    search_results = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('search_results.html', search_results=search_results, query=query)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=8000)

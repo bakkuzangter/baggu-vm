@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="/static/js/jquery-3.7.0.min.js"></script>
+    <script src="/static/js/jquery-ui.min.js"></script>
+    <title>검색 결과</title>
+</head>
+<body>
+    <div id="wrap">
+        <div class="container">
+            <div class="inner">
+                <nav class="gnb">
+                    <div class="menu-list">
+                        <ul class="top-menu clear">
+                            <li><a href="#a">Search</a></li>
+                            {% if 'user_id' in session %}
+                                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                            {% else %}
+                                <li><a href="{{ url_for('login') }}">Login</a></li>
+                            {% endif %}
+                            <li><a href="#a">Wish</a></li>
+                            <li><a href="#a">Cart</a></li>
+                        </ul>
+                        <h3 style="text-align: center;">Welcome, {{ username }}!</h3>
+                        <ul class="categorie">
+                            <li><a href="#a">물품교환</a></li>
+                            <li><a href="#a">내가 올린 물품</a></li>
+                            <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
+                            <li><a href="{{ url_for('my_transactions')}}">나의 거래 내역</a></li>
+                        </ul>
+                    </div>
+                </nav>
+                <div class="btnBar">
+                    <a href="#" class="btn-menu">
+                        <span class="item"></span>
+                        <span class="item"></span>
+                        <span class="item"></span>
+                    </a>
+                </div>
+                <div class="title">
+                    <h1 style="font-size: 19px; font-weight: 800;">"{{ query }}" 에 대한 검색 결과 입니다</h1>
+                </div>
+            </div>
+            <div class="contents">
+                <div class="title">
+                    <a href="/main">BagguZangter</a>
+                </div>
+                <!-- 검색 기능 -->
+                <div style="margin-top: 80px;" class="search-container">
+                    <button class="search-btn" id="searchIcon">
+                        <img src="{{ url_for('static', filename='img/search-icon.png') }}" alt="검색" style="width: 20px;">
+                    </button>
+                    <input type="text" id="searchInput" class="search-input" placeholder="물건 검색...">
+                </div>
+                <div class="box-Area">
+                    {% if search_results %}
+                        {% for item in search_results %}
+                            <div class="box">
+                                <a href="{{ url_for('item_detail', item_id=item.id) }}">
+                                    <img src="{{ item.image_url }}" alt="{{ item.title }}" style="width: 100px; height: 100px;">
+                                    {% if item.status == 'completed' %}
+                                        <div class="completed-overlay"></div>
+                                    {% endif %}
+                                </a>
+                                <div class="info">
+                                    <h3><a href="{{ url_for('item_detail', item_id=item.id) }}">{{ item.title }}</a></h3>
+                                    <p>{{ item.description }}</p>
+                                    <small>Posted on {{ item.created_at }} by {{ item.nickname }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>검색 결과가 없습니다.</p>
+                    {% endif %}
+                </div>  
+            </div> 
+        <!-- //container -->      
+    </div>
+    <!-- wrap -->
+    <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
+    <script>
+        // 검색 기능
+        const searchIcon = document.getElementById('searchIcon');
+            const searchInput = document.getElementById('searchInput');
+            searchIcon.addEventListener('click', () => {
+                searchInput.style.display = searchInput.style.display === 'none' ? 'block' : 'none';
+            });
+
+            searchInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    const query = searchInput.value;
+                    window.location.href = `{{ url_for('search_items') }}?query=${query}`;
+                }
+            });
+    </script>
+</body>
+</html>

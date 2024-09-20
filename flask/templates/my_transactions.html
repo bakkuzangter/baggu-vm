@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나의 거래 내역</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <script src="/static/js/jquery-3.7.0.min.js"></script>
+    <script src="/static/js/jquery-ui.min.js"></script>
+    <style>
+        .transaction-type-btn {
+            width: 49%;
+            margin: 25px 0;
+            padding: 10px 20px;
+            background-color: #222222;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .transaction-type-btn.active {
+            background-color: #a19f9fb2;
+            color: #222222;
+            font-weight: 800;
+        }
+        .transaction-container {
+            display: none;
+        }
+        .transaction-container.active {
+            display: block;
+        }
+        .transaction-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .item-info img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+        .item-info h3 {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .item-info small {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <div class="container">
+            <!-- header -->
+            <div class="inner">
+                <nav class="gnb">
+                    <div class="menu-list">
+                        <ul class="top-menu clear">
+                            <li><a href="#a">Search</a></li>
+                            {% if 'user_id' in session %}
+                                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                            {% else %}
+                                <li><a href="{{ url_for('login') }}">Login</a></li>
+                            {% endif %}
+                            <li><a href="#a">Wish</a></li>
+                            <li><a href="#a">Cart</a></li>
+                        </ul>
+                        <h3 style="text-align: center;">Welcome, {{ username }}!</h3>
+                        <ul class="categorie">
+                            <li><a href="#a">물품교환</a></li>
+                            <li><a href="#a">내가 올린 물품</a></li>
+                            <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
+                            <li><a href="{{ url_for('my_transactions')}}">나의 거래 내역</a></li>
+                        </ul>
+                    </div>
+                </nav>
+                <div class="btnBar">
+                    <a href="#" class="btn-menu">
+                        <span class="item"></span>
+                        <span class="item"></span>
+                        <span class="item"></span>
+                    </a>
+                    </div>
+            </div>
+            <div class="contents">
+                <div class="title">
+                    <a href="/main">BagguZangter</a>
+                </div>
+                <h1 style="font-size: 19px; font-weight: 800;">나의 거래 내역</h1>
+            <!-- 거래 유형 선택 버튼 -->
+            <button id="my-posts-btn" class="transaction-type-btn active">올린 물건 거래내역</button>
+            <button id="my-bids-btn" class="transaction-type-btn">입찰 거래내역</button>
+    
+            <!-- 내가 올린 물건으로 성사된 거래 내역 -->
+            <div id="my-posted-transactions" class="transaction-container active">
+                <h2 style="margin-bottom: 30px; text-align: center;">올린 물건 거래내역</h2>
+                {% for transaction in my_posted_transactions %}
+                    <div class="transaction-box">
+                        <div class="item-info">
+                            <h3>나의 물건</h3>
+                            <img src="{{ transaction.my_item.image_url }}" alt="{{ transaction.my_item.title }}">
+                            <p>{{ transaction.my_item.title }}</p>
+                            <small>Posted by {{ transaction.my_item.nickname }}</small>
+                        </div>
+                        <div class="item-info">
+                            <h3>상대의 물건</h3>
+                            <img src="{{ transaction.bid_item.image_url }}" alt="{{ transaction.bid_item.title }}">
+                            <p>{{ transaction.bid_item.title }}</p>
+                            <small>Bid by {{ transaction.bid_item.nickname }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+    
+            <!-- 내가 입찰하여 성공한 거래 내역 -->
+            <div id="my-bid-transactions" class="transaction-container">
+                <h2 style="margin-bottom: 30px; text-align: center;">입찰 거래내역</h2>
+                {% for transaction in my_bid_transactions %}
+                    <div class="transaction-box">
+                        <div class="item-info">
+                            <h3>나의 물건</h3>
+                            <img src="{{ transaction.my_item.image_url }}" alt="{{ transaction.my_item.title }}">
+                            <p>{{ transaction.my_item.title }}</p>
+                            <small>Bid by {{ transaction.my_item.nickname }}</small>
+                        </div>
+                        <div class="item-info">
+                            <h3>상대의 물건</h3>
+                            <img src="{{ transaction.bid_item.image_url }}" alt="{{ transaction.bid_item.title }}">
+                            <p>{{ transaction.bid_item.title }}</p>
+                            <small>Posted by {{ transaction.bid_item.nickname }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const myPostsBtn = document.getElementById('my-posts-btn');
+            const myBidsBtn = document.getElementById('my-bids-btn');
+            const myPostedTransactions = document.getElementById('my-posted-transactions');
+            const myBidTransactions = document.getElementById('my-bid-transactions');
+
+            // 내가 올린 물건 거래내역 보기
+            myPostsBtn.addEventListener('click', () => {
+                myPostsBtn.classList.add('active');
+                myBidsBtn.classList.remove('active');
+                myPostedTransactions.classList.add('active');
+                myBidTransactions.classList.remove('active');
+            });
+
+            // 내가 입찰 성공한 거래내역 보기
+            myBidsBtn.addEventListener('click', () => {
+                myPostsBtn.classList.remove('active');
+                myBidsBtn.classList.add('active');
+                myPostedTransactions.classList.remove('active');
+                myBidTransactions.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

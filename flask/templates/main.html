@@ -4,121 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/BagguZangter.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
     <script src="/static/js/jquery-3.7.0.min.js"></script>
     <script src="/static/js/jquery-ui.min.js"></script>
     <title>BagguZangter</title>
     <style>
-        .box {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            position: relative; /* 이미지 겹치기 위해 추가 */
-        }
-        .box img {
-            width: 150px;
-            height: 150px;
-            margin-right: 20px;
-            object-fit: cover;
-        }
-        .box .info {
-            display: flex;
-            flex-direction: column;
-        }
-        .box .info h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.2em;
-        }
-        .box .info p {
-            margin: 0 0 10px 0;
-            font-size: 1em;
-        }
-        .box .info small {
-            color: #666;
-        }
-        .box .info .delete-btn {
-            margin-top: 10px;
-            padding: 5px 10px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
 
-        /* 거래 완료 이미지 스타일 */
-        .completed-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 120px; /* 이미지 크기 조절 */
-            height: 120px; /* 이미지 크기 조절 */
-            background-image: url('{{ url_for('static', filename='img/complete.png') }}');
-            background-size: contain; /* 이미지 크기 고정 */
-            background-repeat: no-repeat; /* 반복 방지 */
-            background-position: center; /* 이미지가 중앙에 위치하도록 설정 */
-            opacity: 1;
-            pointer-events: none;
-            transform: translate(10%, 10%); /* 이미지를 완전히 중앙에 맞추기 위해 조정 */
-        }
-
-        .write-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #007bff;
-            color: white;
-            font-size: 30px;
-            text-align: center;
-            line-height: 50px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            z-index: 1000;
-        }
-        .popup-menu {
-            display: none;
-            position: fixed;
-            bottom: 70px;
-            right: 20px;
-            background-color: #444;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            width: 150px;
-            padding: 10px 0;
-            z-index: 1000;
-        }
-        .popup-item {
-            padding: 10px 20px;
-            color: white;
-            cursor: pointer;
-        }
-        .popup-item:hover {
-            background-color: #555;
-        }
-        .popup-item span {
-            margin-left: 10px;
-        }
+    /* 거래 완료 이미지 스타일 */
+    .completed-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 120px;
+        height: 120px;
+        background-image: url('{{ url_for('static', filename='img/complete.png') }}');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 1;
+        pointer-events: none;
+        transform: translate(10%, 10%);
+    }
     </style>
 </head>
 <body>
     <div id="wrap">
-        <!-- container -->
+    <!-- container -->
         <div class="container">
-            <!-- intro -->
-            {% if session.show_intro %}
-                <div class="intro">
-                    <img class="first-text" src="{{ url_for('static', filename='img/intro.png') }}" alt="intro">
-                </div>
-            {% endif %}
-            <!-- header -->
+    <!-- intro -->
+            <div class="intro">
+                <p class="first-text">
+                    <img src="../static/img/intro.png" alt="intro_bg">
+                </p>
+                <h2 class="second-text">BagguZangter</h2>
+            </div>
+    <!-- header -->
             <div class="inner">
                 <nav class="gnb">
                     <div class="menu-list">
@@ -130,32 +53,72 @@
                                 <li><a href="{{ url_for('login') }}">Login</a></li>
                             {% endif %}
                             <li><a href="#a">Wish</a></li>
-                            <li><a href="#a">Cart <!-- <span class="cart">(0)</span> --></a></li>
+                            <li><a href="#a">Cart</a></li>
                         </ul>
-                        <h3>Welcome, {{ username }}!</h3>
+                        <h3 style="text-align: center;">Welcome, {{ username }}!</h3>
                         <ul class="categorie">
                             <li><a href="#a">물품교환</a></li>
                             <li><a href="#a">내가 올린 물품</a></li>
                             <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
-                            <li><a href="#a">이번주 급상승 물품</a></li>
+                            <li><a href="{{ url_for('my_transactions')}}">나의 거래 내역</a></li>
                         </ul>
                     </div>
                 </nav>
-                <!-- btnBar -->
                 <div class="btnBar">
                     <a href="#" class="btn-menu">
                         <span class="item"></span>
                         <span class="item"></span>
                         <span class="item"></span>
                     </a>
-                </div>
+                 </div>
             </div>
             <div class="contents">
                 <div class="title">
                     <a href="/main">BagguZangter</a>
                 </div>
-                
-                <div class="box-Area">
+    <!-- 필터 버튼 및 검색 영역 -->
+                <div class="filter-btn-container">
+                    <div class="filter-btn-group">
+                        <a href="{{ url_for('main', sort_by='date', order=next_order) }}" class="filter-btn">
+                            날짜순 {% if sort_by == 'date' %}{{ '▲' if order == 'asc' else '▼' }}{% endif %}
+                        </a>
+                        <a href="{{ url_for('main', sort_by='name', order=next_order) }}" class="filter-btn">
+                            물건이름순 {% if sort_by == 'name' %}{{ '▲' if order == 'asc' else '▼' }}{% endif %}
+                        </a>
+                        <a href="{{ url_for('main', sort_by='user', order=next_order) }}" class="filter-btn">
+                            아이디순 {% if sort_by == 'user' %}{{ '▲' if order == 'asc' else '▼' }}{% endif %}
+                        </a>
+                    </div>
+                </div>
+    <!-- 검색 기능 -->
+                <div style="margin-bottom: 20px;" class="search-container">
+                    <button class="search-btn" id="searchIcon">
+                        <img src="{{ url_for('static', filename='img/search-icon.png') }}" alt="검색" style="width: 20px;">
+                    </button>
+                    <input type="text" id="searchInput" class="search-input" placeholder="물건 검색...">
+                </div>
+    <!-- Slide banner -->
+                <div class="swiper mySwiper">
+                    <div class="swiper-wrapper">
+                      <div class="swiper-slide">
+                        <img src="../static/img/banner1.png" alt="banner1">
+                      </div>
+                      <div class="swiper-slide">
+                        <img src="../static/img/banner4.png" alt="banner4">
+                      </div>
+                      <div class="swiper-slide">
+                        <img src="../static/img/banner3.png" alt="banner3">
+                      </div>
+                      <div class="swiper-slide">
+                        <img src="../static/img/banner2.png" alt="banner2">
+                      </div>
+                    </div>
+                    <div class="swiper-button-next"></div> <!--다음 버튼 -->
+                    <div class="swiper-button-prev"></div><!-- 이전 버튼 -->
+                    <div class="swiper-pagination"></div><!-- 아래 페이지 버튼 -->
+                </div>
+    <!-- 물품 리스트 -->
+                <div class="box-Area"></div>
                     {% for item in items %}
                         <div class="box">
                             <a href="{{ url_for('item_detail', item_id=item.id) }}">
@@ -176,26 +139,43 @@
                     {% endfor %}
                 </div>
             </div>
-            <!-- main -->
-
-            <!--fixedBanner -->
-            <section class="fixed-banner">
-                
-            </section>
-
-            <!-- Floating Action Button -->
-            <div>
+            
+    <!-- fix banner -->
+            <div class="fixed">
                 <button id="writeButton" class="write-button">+</button>
                 <div id="popupMenu" class="popup-menu">
                     <div class="popup-item" onclick="location.href='{{ url_for('post_item') }}'"><span>물품 올리기</span></div>
                     <div class="popup-item" onclick="location.href='{{ url_for('chat_rooms') }}'"><span>채팅방 보기</span></div>
+                    <div class="popup-item" onclick="location.href='{{ url_for('my_transactions') }}'"><span>나의 거래 내역</span></div>
                 </div>
             </div>
 
         </div>
-        <!-- //container -->
+    <!-- //container -->
     </div>
     <!-- //wrap -->
+    <footer>
+        <div class="f-css">
+            <p>고객센터</p>
+            <p class="f-bold">1541-1633 <span>l</span> 평일 오전 10시 ~ 오후5시</p>
+            <p class="f-bold">dawon2275@gmail.com</p>
+        </div>
+        <div class="f-news">
+            <ul>
+                <li><a href="#">뉴스레터</a></li>
+                <li><a href="#">온라인 서포트</a></li>
+                <li><a href="#">회사 소개</a></li>
+            </ul>
+        </div>
+        <div class="f-sns">
+            <ul>
+                <li><a href="#">인스타그램</a></li>
+                <li><a href="#">카카오톡</a></li>
+                <li><a href="#">뮤직</a></li>
+            </ul>
+        </div>
+        <span class="copy">&copy;2024 Facade BagguZangter</span>
+    </footer>
     <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
     <script>
         function deleteItem(itemId) {
@@ -220,13 +200,9 @@
             const writeButton = document.getElementById('writeButton');
             const popupMenu = document.getElementById('popupMenu');
 
-            // Adjust the position of the popup menu to be relative to the write button
+            // 팝업 메뉴 토글
             writeButton.addEventListener('click', () => {
-                if (popupMenu.style.display === 'none' || popupMenu.style.display === '') {
-                    popupMenu.style.display = 'block';
-                } else {
-                    popupMenu.style.display = 'none';
-                }
+                popupMenu.style.display = (popupMenu.style.display === 'none' || popupMenu.style.display === '') ? 'block' : 'none';
             });
 
             document.addEventListener('click', (event) => {
@@ -235,10 +211,19 @@
                 }
             });
 
-            // Adjust popup menu position relative to the write button
-            popupMenu.style.position = 'absolute';
-            popupMenu.style.bottom = '80px';
-            popupMenu.style.right = '40px';
+            // 검색 기능
+            const searchIcon = document.getElementById('searchIcon');
+            const searchInput = document.getElementById('searchInput');
+            searchIcon.addEventListener('click', () => {
+                searchInput.style.display = searchInput.style.display === 'none' ? 'block' : 'none';
+            });
+
+            searchInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    const query = searchInput.value;
+                    window.location.href = `{{ url_for('search_items') }}?query=${query}`;
+                }
+            });
         });
     </script>
 </body>

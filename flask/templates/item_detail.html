@@ -83,7 +83,7 @@
         }
 
         .custom-btn {
-            background-color: #007BFF; /* 파란색 배경 */
+            background-color: #F2A03D; /* 파란색 배경 */
             color: white; /* 흰색 글씨 */
             padding: 10px 20px; /* 패딩 */
             margin: 10px 0; /* 위아래 마진 */
@@ -94,39 +94,48 @@
             display: inline-block; /* 인라인 블록으로 설정 */
             text-align: center; /* 텍스트 중앙 정렬 */
             text-decoration: none; /* 텍스트 밑줄 제거 */
+            transition: all 0.4s;
         }
 
         .custom-btn:hover {
-            background-color: #0056b3; /* 호버 시 약간 더 어두운 파란색 */
+            background-color: #9c7340; /* 호버 시 약간 더 어두운 파란색 */
         }
     </style>
 </head>
 <body>
     <div id="wrap">
+      <!-- container -->
+      <div class="container">
+        <!-- header -->
         <div class="inner">
             <nav class="gnb">
                 <div class="menu-list">
                     <ul class="top-menu clear">
                         <li><a href="#a">Search</a></li>
-                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        {% if 'user_id' in session %}
+                            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('login') }}">Login</a></li>
+                        {% endif %}
                         <li><a href="#a">Wish</a></li>
                         <li><a href="#a">Cart</a></li>
                     </ul>
-
+                    <h3 style="text-align: center;">Welcome, {{ username }}!</h3>
                     <ul class="categorie">
                         <li><a href="#a">물품교환</a></li>
                         <li><a href="#a">내가 올린 물품</a></li>
                         <li><a href="{{ url_for('post_item') }}">물품 올리기</a></li>
-                        <li><a href="#a">이번주 급상승 물품</a></li>
+                        <li><a href="{{ url_for('my_transactions')}}">나의 거래 내역</a></li>
                     </ul>
                 </div>
             </nav>
-            <!-- btnBar -->
-            <a href="#" class="btn-menu">
-                <span class="item"></span>
-                <span class="item"></span>
-                <span class="item"></span>
-            </a>
+            <div class="btnBar">
+                <a href="#" class="btn-menu">
+                    <span class="item"></span>
+                    <span class="item"></span>
+                    <span class="item"></span>
+                </a>
+             </div>
         </div>
         <div class="contents">
             <div class="title">
@@ -164,6 +173,9 @@
                 {% endfor %}
             </div>
         </div>
+        <!-- //container -->
+      </div>
+        
     </div>
     <!-- //inner -->
     <footer>
@@ -171,6 +183,8 @@
         <span class="copy">&copy;2024 Facade BagguZangter</span>
     </footer>
     <!-- //footer -->
+    
+    <script src="{{ url_for('static', filename='js/BagguZangter.js') }}"></script>
     <script>
         function deleteBid(bidId) {
             if (confirm('Are you sure you want to delete this bid?')) {
